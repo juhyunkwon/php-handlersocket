@@ -63,7 +63,7 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(arginfo_hs_executeSingle, 0, 0, 3)
     ZEND_ARG_INFO(0, id)
     ZEND_ARG_INFO(0, op)
-    ZEND_ARG_INFO(0, values)
+    ZEND_ARG_INFO(0, fields)
     ZEND_ARG_INFO(0, limit)
     ZEND_ARG_INFO(0, skip)
 ZEND_END_ARG_INFO()
@@ -74,8 +74,8 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(arginfo_hs_executeUpdate, 0, 0, 4)
     ZEND_ARG_INFO(0, id)
     ZEND_ARG_INFO(0, op)
+    ZEND_ARG_INFO(0, fields)
     ZEND_ARG_INFO(0, values)
-    ZEND_ARG_INFO(0, modvals)
     ZEND_ARG_INFO(0, limit)
     ZEND_ARG_INFO(0, skip)
 ZEND_END_ARG_INFO()
@@ -83,14 +83,14 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(arginfo_hs_executeDelete, 0, 0, 3)
     ZEND_ARG_INFO(0, id)
     ZEND_ARG_INFO(0, op)
-    ZEND_ARG_INFO(0, values)
+    ZEND_ARG_INFO(0, fields)
     ZEND_ARG_INFO(0, limit)
     ZEND_ARG_INFO(0, skip)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_hs_executeInsert, 0, 0, 2)
     ZEND_ARG_INFO(0, id)
-    ZEND_ARG_INFO(0, values)
+    ZEND_ARG_INFO(0, fields)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_hs_getError, 0, 0, 0)
@@ -360,27 +360,27 @@ inline static void array_to_conf(zval *opts, dena::config& conf)
 }
 
 static inline void handlersocket_prepare(
-    dena::hstcpcli_i *const cli, size_t id, char *op, zval *values,
-    long limit, long skip, char *modop, zval *modvals)
+    dena::hstcpcli_i *const cli, size_t id, char *op, zval *fields,
+    long limit, long skip, char *modop, zval *values)
 {
     dena::string_ref op_ref, modop_ref;
-    std::vector<dena::string_ref> valary, modary;
+    std::vector<dena::string_ref> fldary, valary;
 
     op_ref = dena::string_ref(op, strlen(op));
-    array_to_vector(values, valary);
+    array_to_vector(fields, fldary);
 
     if (modop != NULL)
     {
         modop_ref = dena::string_ref(modop, strlen(modop));
-        if (modvals != NULL)
+        if (values != NULL)
         {
-            array_to_vector(modvals, modary);
+            array_to_vector(values, valary);
         }
     }
 
     cli->request_buf_exec_generic(
-        id, op_ref, &valary[0], valary.size(), limit, skip,
-        modop_ref, &modary[0], modary.size());
+        id, op_ref, &fldary[0], fldary.size(), limit, skip,
+        modop_ref, &valary[0], valary.size());
 }
 
 static inline void handlersocket_get_results(
@@ -417,8 +417,8 @@ static inline void handlersocket_get_results(
 
 static inline int handlersocket_execute(
     dena::hstcpcli_i *const cli, zval *return_value,
-    long id, char *op, zval *values, long limit, long skip,
-    char *modop, zval *modvals)
+    long id, char *op, zval *fields, long limit, long skip,
+    char *modop, zval *values)
 {
     size_t num_flds = 0;
     int result;
@@ -429,7 +429,7 @@ static inline int handlersocket_execute(
         return -1;
     }
 
-    handlersocket_prepare(cli, id, op, values, limit, skip, modop, modvals);
+    handlersocket_prepare(cli, id, op, fields, limit, skip, modop, values);
 
     if (cli->request_send() != 0)
     {
@@ -572,18 +572,18 @@ static ZEND_METHOD(handlersocket, executeSingle)
     long id;
     char *op;
     int op_len, modop_len;
-    zval *values;
+    zval *fields;
     long limit = 1, skip = 0;
 
     if (zend_parse_parameters(
             ZEND_NUM_ARGS() TSRMLS_CC, "lsa|ll",
-            &id, &op, &op_len, &values, &limit, &skip) == FAILURE)
+            &id, &op, &op_len, &fields, &limit, &skip) == FAILURE)
     {
         return;
     }
 
     hs->error_no = handlersocket_execute(
-        hs->cli, return_value, id, op, values, limit, skip, NULL, NULL);
+        hs->cli, return_value, id, op, fields, limit, skip, NULL, NULL);
 
     if (hs->error_no != 0)
     {
@@ -791,20 +791,20 @@ static ZEND_METHOD(handlersocket, executeUpdate)
     long id;
     char *op;
     long op_len;
-    zval *values, *modvals, tmp;
+    zval *fields, *values;
     long limit = 1, skip = 0;
 
     if (zend_parse_parameters(
             ZEND_NUM_ARGS() TSRMLS_CC, "lsaa|ll",
-            &id, &op, &op_len, &values, &modvals,
+            &id, &op, &op_len, &fields, &values,
             &limit, &skip) == FAILURE)
     {
         return;
     }
 
     hs->error_no = handlersocket_execute(
-        hs->cli, return_value, id, op, values, limit, skip,
-        HANDLERSOCKET_EXECUTE_UPDATE, modvals);
+        hs->cli, return_value, id, op, fields, limit, skip,
+        HANDLERSOCKET_EXECUTE_UPDATE, values);
 
     if (hs->error_no != 0)
     {
@@ -818,12 +818,12 @@ static ZEND_METHOD(handlersocket, executeDelete)
     long id;
     char *op;
     long op_len;
-    zval *values, *tmp;
+    zval *fields, *tmp;
     long limit = 1, skip = 0;
 
     if (zend_parse_parameters(
             ZEND_NUM_ARGS() TSRMLS_CC, "lsa|ll",
-            &id, &op, &op_len, &values, &limit, &skip) == FAILURE)
+            &id, &op, &op_len, &fields, &limit, &skip) == FAILURE)
     {
         return;
     }
@@ -832,7 +832,7 @@ static ZEND_METHOD(handlersocket, executeDelete)
     array_init(tmp);
 
     hs->error_no = handlersocket_execute(
-        hs->cli, return_value, id, op, values, limit, skip,
+        hs->cli, return_value, id, op, fields, limit, skip,
         HANDLERSOCKET_EXECUTE_DELETE, tmp);
 
     if (hs->error_no != 0)
