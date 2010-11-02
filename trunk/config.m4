@@ -8,12 +8,12 @@ dnl Check PHP version:
 
 AC_MSG_CHECKING(PHP version)
 AC_TRY_COMPILE([#include "php/main/php_version.h"], [
-#if PHP_MAJOR_VERSION < 5 || (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION < 3)
-#error  this extension requires at least PHP version 5.3.0
+#if PHP_MAJOR_VERSION < 5 || (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION < 2)
+#error  this extension requires at least PHP version 5.2.0 or newer
 #endif
 ],
 [AC_MSG_RESULT(ok)],
-[AC_MSG_ERROR([need at least PHP 5.3.0])])
+[AC_MSG_ERROR([need at least PHP 5.2.0 or newer])])
 
 dnl If your extension references something external, use with:
 

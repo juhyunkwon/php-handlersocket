@@ -31,6 +31,10 @@ typedef struct
 #define HANDLERSOCKET_EXECUTE_UPDATE "U"
 #define HANDLERSOCKET_EXECUTE_DELETE "D"
 
+#if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION < 3)
+#   define array_init_size(arg, size) array_init(arg)
+#endif
+
 static zend_class_entry *handlersocket_ce = NULL;
 
 static ZEND_METHOD(handlersocket, __construct);
@@ -153,9 +157,9 @@ PHP_MINIT_FUNCTION(handlersocket)
 {
     /* class */
     zend_class_entry ce;
-    TSRMLS_FETCH();
 
-    INIT_CLASS_ENTRY(ce, "HandlerSocket", handlersocket_methods);
+    INIT_CLASS_ENTRY(
+        ce, "HandlerSocket", (zend_function_entry *)handlersocket_methods);
     handlersocket_ce = zend_register_internal_class(&ce TSRMLS_CC);
     handlersocket_ce->create_object = php_handlersocket_new;
 
@@ -232,6 +236,7 @@ inline static void array_to_vector(zval *ary, std::vector<dena::string_ref>& vec
     ulong key_index;
     zval **data;
     HashPosition pos;
+    TSRMLS_FETCH();
 
     if (ary == NULL)
     {
@@ -284,6 +289,7 @@ inline static void array_to_conf(zval *opts, dena::config& conf)
     zval **data;
     HashPosition pos;
     HashTable *ht;
+    TSRMLS_FETCH();
 
     if (opts == NULL)
     {
@@ -383,6 +389,16 @@ static inline void handlersocket_prepare(
         modop_ref, &valary[0], valary.size());
 }
 
+static inline void handlersocket_set_error(zval *error, const char *str)
+{
+    if (error)
+    {
+        zval_ptr_dtor(&error);
+        ALLOC_INIT_ZVAL(error);
+    }
+    ZVAL_STRING(error, (char *)str, 1);
+}
+
 static inline void handlersocket_get_results(
     dena::hstcpcli_i *const cli, zval *return_value, size_t flds)
 {
@@ -403,7 +419,7 @@ static inline void handlersocket_get_results(
             const dena::string_ref& v = row[i];
             if (v.begin() != 0)
             {
-                add_next_index_stringl(value, v.begin(), v.size(), 1);
+                add_next_index_stringl(value, (char *)v.begin(), v.size(), 1);
             }
             else
             {
@@ -540,14 +556,14 @@ static ZEND_METHOD(handlersocket, openIndex)
     if (hs->cli->get_error_code() < 0)
     {
         hs->error_no = hs->cli->get_error_code();
-        ZVAL_STRING(hs->error_str, hs->cli->get_error().c_str(), 1);
+        handlersocket_set_error(hs->error_str, hs->cli->get_error().c_str());
         RETURN_FALSE;
     }
 
     if (hs->cli->request_send() != 0)
     {
         hs->error_no = hs->cli->get_error_code();
-        ZVAL_STRING(hs->error_str, hs->cli->get_error().c_str(), 1);
+        handlersocket_set_error(hs->error_str, hs->cli->get_error().c_str());
         RETURN_FALSE;
     }
 
@@ -559,7 +575,7 @@ static ZEND_METHOD(handlersocket, openIndex)
     else
     {
         hs->error_no = hs->cli->get_error_code();
-        ZVAL_STRING(hs->error_str, hs->cli->get_error().c_str(), 1);
+        handlersocket_set_error(hs->error_str, hs->cli->get_error().c_str());
         RETURN_FALSE;
     }
 
@@ -587,7 +603,7 @@ static ZEND_METHOD(handlersocket, executeSingle)
 
     if (hs->error_no != 0)
     {
-        ZVAL_STRING(hs->error_str, hs->cli->get_error().c_str(), 1);
+        handlersocket_set_error(hs->error_str, hs->cli->get_error().c_str());
     }
 }
 
@@ -742,7 +758,7 @@ static ZEND_METHOD(handlersocket, executeMulti)
     if (hs->cli->request_send() != 0)
     {
         hs->error_no = hs->cli->get_error_code();
-        ZVAL_STRING(hs->error_str, hs->cli->get_error().c_str(), 1);
+        handlersocket_set_error(hs->error_str, hs->cli->get_error().c_str());
         RETURN_FALSE;
     }
 
@@ -756,7 +772,7 @@ static ZEND_METHOD(handlersocket, executeMulti)
         if (result != 0)
         {
             hs->error_no = hs->cli->get_error_code();
-            ZVAL_STRING(hs->error_str, hs->cli->get_error().c_str(), 1);
+            handlersocket_set_error(hs->error_str, hs->cli->get_error().c_str());
             add_next_index_bool(return_value, 0);
         }
         /*
@@ -808,7 +824,7 @@ static ZEND_METHOD(handlersocket, executeUpdate)
 
     if (hs->error_no != 0)
     {
-        ZVAL_STRING(hs->error_str, hs->cli->get_error().c_str(), 1);
+        handlersocket_set_error(hs->error_str, hs->cli->get_error().c_str());
     }
 }
 
@@ -837,7 +853,7 @@ static ZEND_METHOD(handlersocket, executeDelete)
 
     if (hs->error_no != 0)
     {
-        ZVAL_STRING(hs->error_str, hs->cli->get_error().c_str(), 1);
+        handlersocket_set_error(hs->error_str, hs->cli->get_error().c_str());
     }
 
     zval_ptr_dtor(&tmp);
@@ -862,7 +878,7 @@ static ZEND_METHOD(handlersocket, executeInsert)
 
     if (hs->error_no != 0)
     {
-        ZVAL_STRING(hs->error_str, hs->cli->get_error().c_str(), 1);
+        handlersocket_set_error(hs->error_str, hs->cli->get_error().c_str());
     }
 }
 
