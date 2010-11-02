@@ -5,6 +5,7 @@ $port_wr = 9999;
 $dbname = 'hstestdb';
 $table = 'hstesttbl';
 
+
 //GET
 $hs = new HandlerSocket($host, $port);
 if (!($hs->openIndex(1, $dbname, $table, HandlerSocket::PRIMARY, 'k,v')))
@@ -57,11 +58,11 @@ if (!($hs->executeInsert(3, array('k2', 'v2'))))
 }
 if (!($hs->executeInsert(3, array('k3', 'v3'))))
 {
-    echo 'A', $hs->getError(), PHP_EOL;
+    echo $hs->getError(), PHP_EOL;
 }
 if (!($hs->executeInsert(3, array('k4', 'v4'))))
 {
-    echo 'B', $hs->getError(), PHP_EOL;
+    echo $hs->getError(), PHP_EOL;
 }
 
 unset($hs);
