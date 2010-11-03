@@ -1,5 +1,9 @@
 handlersocket extension changelog
 
+Version 0.0.3
+-------------
+	* Fixed bug undefine fields.
+
 Version 0.0.2
 -------------
 	* Fixed bug thread safety.
