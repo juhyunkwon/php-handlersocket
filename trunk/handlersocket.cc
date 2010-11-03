@@ -7,7 +7,6 @@ extern "C" {
 #include "php.h"
 #include "php_ini.h"
 #include "ext/standard/info.h"
-#include "ext/standard/php_smart_str.h"
 #include "php_handlersocket.h"
 }
 
@@ -126,7 +125,15 @@ static const zend_function_entry handlersocket_methods[] = {
 
 static void php_handlersocket_free(php_handlersocket_t *hs TSRMLS_DC)
 {
+#if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION > 0)
     zend_object_std_dtor(&hs->object TSRMLS_CC);
+#else
+    if (hs->object.properties)
+    {
+        zend_hash_destroy(hs->object.properties);
+        FREE_HASHTABLE(hs->object.properties);
+    }
+#endif
     efree(hs);
 }
 
@@ -138,7 +145,13 @@ static zend_object_value php_handlersocket_new(zend_class_entry *ce TSRMLS_DC)
 
     hs = (php_handlersocket_t *)emalloc(sizeof(php_handlersocket_t));
 
+#if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION > 0)
     zend_object_std_init(&hs->object, ce TSRMLS_CC);
+#else
+    ALLOC_HASHTABLE(hs->object.properties);
+    zend_hash_init(hs->object.properties, 0, NULL, ZVAL_PTR_DTOR, 0);
+    hs->object.ce = ce;
+#endif
 
     zend_hash_copy(
         hs->object.properties, &ce->default_properties,
@@ -164,8 +177,13 @@ PHP_MINIT_FUNCTION(handlersocket)
     handlersocket_ce->create_object = php_handlersocket_new;
 
     /* constant */
+#if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION > 0)
     zend_declare_class_constant_string(
         handlersocket_ce, "PRIMARY", strlen("PRIMARY"), "PRIMARY" TSRMLS_CC);
+#else
+    REGISTER_STRING_CONSTANT(
+    "HANDLERSOCKET_PRIMARY", "PRIMARY", CONST_CS | CONST_PERSISTENT);
+#endif
 
     return SUCCESS;
 }
@@ -204,9 +222,9 @@ zend_module_entry handlersocket_module_entry = {
     "handlersocket",
     NULL,
     PHP_MINIT(handlersocket),
-    NULL, //PHP_MSHUTDOWN(handlersocket),
-    NULL, //PHP_RINIT(handlersocket),
-    NULL, //PHP_RSHUTDOWN(handlersocket),
+    NULL,
+    NULL,
+    NULL,
     PHP_MINFO(handlersocket),
 #if ZEND_MODULE_API_NO >= 20010901
     HANDLERSOCKET_EXTENSION_VERSION,
@@ -240,6 +258,7 @@ inline static void array_to_vector(zval *ary, std::vector<dena::string_ref>& vec
 
     if (ary == NULL)
     {
+        vec.push_back(dena::string_ref());
         return;
     }
 
@@ -248,6 +267,7 @@ inline static void array_to_vector(zval *ary, std::vector<dena::string_ref>& vec
 
     if (num == 0)
     {
+        vec.push_back(dena::string_ref());
         return;
     }
 
@@ -269,14 +289,21 @@ inline static void array_to_vector(zval *ary, std::vector<dena::string_ref>& vec
             continue;
         }
 
-        if (Z_TYPE_PP(data) != IS_STRING)
+        if (Z_TYPE_PP(data) == IS_STRING)
         {
-            zval_ptr_dtor(data);
-            ALLOC_INIT_ZVAL(*data);
-            ZVAL_STRINGL(*data, "", 0, 1);
+            vec.push_back(dena::string_ref(Z_STRVAL_PP(data), Z_STRLEN_PP(data)));
         }
-
-        vec.push_back(dena::string_ref(Z_STRVAL_PP(data), Z_STRLEN_PP(data)));
+        else if (Z_TYPE_PP(data) == IS_LONG ||
+                 Z_TYPE_PP(data) == IS_DOUBLE ||
+                 Z_TYPE_PP(data) == IS_BOOL)
+        {
+            convert_to_string(*data);
+            vec.push_back(dena::string_ref(Z_STRVAL_PP(data), Z_STRLEN_PP(data)));
+        }
+        else
+        {
+            vec.push_back(dena::string_ref());
+        }
     }
 }
 
