@@ -69,6 +69,8 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_hs_executeSingle, 0, 0, 3)
     ZEND_ARG_INFO(0, fields)
     ZEND_ARG_INFO(0, limit)
     ZEND_ARG_INFO(0, skip)
+    ZEND_ARG_INFO(0, modop)
+    ZEND_ARG_INFO(0, values)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_hs_executeMulti, 0, 0, 0)
@@ -180,9 +182,21 @@ PHP_MINIT_FUNCTION(handlersocket)
 #if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION > 0)
     zend_declare_class_constant_string(
         handlersocket_ce, "PRIMARY", strlen("PRIMARY"), "PRIMARY" TSRMLS_CC);
+    zend_declare_class_constant_string(
+        handlersocket_ce, "UPDATE", strlen("UPDATE"),
+        HANDLERSOCKET_EXECUTE_UPDATE TSRMLS_CC);
+    zend_declare_class_constant_string(
+        handlersocket_ce, "DELETE", strlen("DELETE"),
+        HANDLERSOCKET_EXECUTE_DELETE TSRMLS_CC);
 #else
     REGISTER_STRING_CONSTANT(
-    "HANDLERSOCKET_PRIMARY", "PRIMARY", CONST_CS | CONST_PERSISTENT);
+        "HANDLERSOCKET_PRIMARY", "PRIMARY", CONST_CS | CONST_PERSISTENT);
+    REGISTER_STRING_CONSTANT(
+        "HANDLERSOCKET_UPDATE", HANDLERSOCKET_EXECUTE_UPDATE,
+        CONST_CS | CONST_PERSISTENT);
+    REGISTER_STRING_CONSTANT(
+        "HANDLERSOCKET_DELETE", HANDLERSOCKET_EXECUTE_DELETE,
+        CONST_CS | CONST_PERSISTENT);
 #endif
 
     return SUCCESS;
@@ -291,14 +305,16 @@ inline static void array_to_vector(zval *ary, std::vector<dena::string_ref>& vec
 
         if (Z_TYPE_PP(data) == IS_STRING)
         {
-            vec.push_back(dena::string_ref(Z_STRVAL_PP(data), Z_STRLEN_PP(data)));
+            vec.push_back(
+                dena::string_ref(Z_STRVAL_PP(data), Z_STRLEN_PP(data)));
         }
         else if (Z_TYPE_PP(data) == IS_LONG ||
                  Z_TYPE_PP(data) == IS_DOUBLE ||
                  Z_TYPE_PP(data) == IS_BOOL)
         {
             convert_to_string(*data);
-            vec.push_back(dena::string_ref(Z_STRVAL_PP(data), Z_STRLEN_PP(data)));
+            vec.push_back(
+                dena::string_ref(Z_STRVAL_PP(data), Z_STRLEN_PP(data)));
         }
         else
         {
@@ -405,10 +421,7 @@ static inline void handlersocket_prepare(
     if (modop != NULL)
     {
         modop_ref = dena::string_ref(modop, strlen(modop));
-        if (values != NULL)
-        {
-            array_to_vector(values, valary);
-        }
+        array_to_vector(values, valary);
     }
 
     cli->request_buf_exec_generic(
@@ -614,19 +627,23 @@ static ZEND_METHOD(handlersocket, executeSingle)
     HANDLERSOCKET_OBJECT;
     long id;
     char *op;
-    int op_len, modop_len;
+    int op_len;
     zval *fields;
     long limit = 1, skip = 0;
+    char *modop = NULL;
+    int modop_len = 0;
+    zval *values = NULL;
 
     if (zend_parse_parameters(
-            ZEND_NUM_ARGS() TSRMLS_CC, "lsa|ll",
-            &id, &op, &op_len, &fields, &limit, &skip) == FAILURE)
+            ZEND_NUM_ARGS() TSRMLS_CC, "lsa|llsa",
+            &id, &op, &op_len, &fields,
+            &limit, &skip, &modop, &modop_len, &values) == FAILURE)
     {
         return;
     }
 
     hs->error_no = handlersocket_execute(
-        hs->cli, return_value, id, op, fields, limit, skip, NULL, NULL);
+        hs->cli, return_value, id, op, fields, limit, skip, modop, values);
 
     if (hs->error_no != 0)
     {
@@ -861,7 +878,7 @@ static ZEND_METHOD(handlersocket, executeDelete)
     long id;
     char *op;
     long op_len;
-    zval *fields, *tmp;
+    zval *fields;
     long limit = 1, skip = 0;
 
     if (zend_parse_parameters(
@@ -871,19 +888,14 @@ static ZEND_METHOD(handlersocket, executeDelete)
         return;
     }
 
-    ALLOC_INIT_ZVAL(tmp);
-    array_init(tmp);
-
     hs->error_no = handlersocket_execute(
         hs->cli, return_value, id, op, fields, limit, skip,
-        HANDLERSOCKET_EXECUTE_DELETE, tmp);
+        HANDLERSOCKET_EXECUTE_DELETE, NULL);
 
     if (hs->error_no != 0)
     {
         handlersocket_set_error(hs->error_str, hs->cli->get_error().c_str());
     }
-
-    zval_ptr_dtor(&tmp);
 }
 
 static ZEND_METHOD(handlersocket, executeInsert)

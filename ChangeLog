@@ -1,5 +1,12 @@
 handlersocket extension changelog
 
+Version 0.0.4
+-------------
+	* Updated executeSingle arguments.
+	* Fixed executeDelete.
+	* Version PHP 5 or newer.
+	* Added examples tests scripts.
+
 Version 0.0.3
 -------------
 	* Fixed bug undefine fields.

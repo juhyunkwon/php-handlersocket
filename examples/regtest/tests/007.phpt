@@ -1,6 +1,27 @@
 --TEST--
 nulls
 --SKIPIF--
+<?php
+ob_start();
+phpinfo();
+$str = ob_get_clean();
+$array = explode("\n", $str);
+$zts = false;
+foreach ($array as $key => $val)
+{
+    if (strstr($val, 'Thread Safety') != false)
+    {
+        $retval = explode(' ', $val);
+        if (strcmp($retval[3], 'enabled') == 0)
+        {
+            $zts = true;
+        }
+    }
+}
+if ($zts)
+{
+    echo 'skip tests in Thread Safety disabled';
+}
 --FILE--
 <?php
 require_once dirname(__FILE__) . '/../common/config.php';
