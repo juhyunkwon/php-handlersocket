@@ -40,7 +40,7 @@ for ($i = 0; $i < $tablesize; $i++)
     $v1 = 'v1_' . $i;
     $v2 = 'v2_' . $i;
 
-    $retval = $hs->executeInsert(1, array($k, $v1, $v2));
+    $retval = $hs->executeSingle(1, '+', array($k, $v1, $v2));
     if (!$retval)
     {
         echo $hs->getError(), PHP_EOL;
@@ -61,8 +61,18 @@ if (!($hs->openIndex(2, MYSQL_DBNAME, $table, '', 'v1')))
 for ($i = 0; $i < $tablesize; $i++)
 {
     $k = (string)$i;
-    $retval = $hs->executeUpdate(
-        2, '=', array($k), array('mod_' . $i), 1000, 0);
+    if (version_compare(PHP_VERSION, '5.1.0', '>='))
+    {
+        $retval = $hs->executeSingle(
+            2, '=', array($k), 1000, 0,
+            HandlerSocket::UPDATE, array('mod_' . $i));
+    }
+    else
+    {
+        $retval = $hs->executeSingle(
+            2, '=', array($k), 1000, 0,
+            HANDLERSOCKET_UPDATE, array('mod_' . $i));
+    }
     if (!$retval)
     {
         echo $hs->getError(), PHP_EOL;
@@ -83,7 +93,16 @@ if (!($hs->openIndex(3, MYSQL_DBNAME, $table, '', '')))
 for ($i = 0; $i < $tablesize; $i = $i + 2)
 {
     $k = (string)$i;
-    $retval = $hs->executeDelete(3, '=', array($k), 1000, 0);
+    if (version_compare(PHP_VERSION, '5.1.0', '>='))
+    {
+        $retval = $hs->executeSingle(
+            3, '=', array($k), 1000, 0, HandlerSocket::DELETE);
+    }
+    else
+    {
+        $retval = $hs->executeSingle(
+            3, '=', array($k), 1000, 0, HANDLERSOCKET_DELETE);
+    }
     if (!$retval)
     {
         echo $hs->getError(), PHP_EOL;

@@ -18,9 +18,9 @@ foreach ($array as $key => $val)
         }
     }
 }
-if ($zts)
+if (!$zts)
 {
-    echo 'skip tests in Thread Safety disabled';
+    echo 'skip tests in Thread Safety enabled';
 }
 --FILE--
 <?php
@@ -120,14 +120,14 @@ array(2) {
       [0]=>
       string(3) "k50"
       [1]=>
-      string(5) "v8750"
+      string(6) "v77750"
     }
     [1]=>
     array(2) {
       [0]=>
       string(3) "k51"
       [1]=>
-      string(6) "v12751"
+      string(6) "v98951"
     }
   }
 }
@@ -140,21 +140,21 @@ array(4) {
       [0]=>
       string(2) "k6"
       [1]=>
-      string(5) "v6336"
+      string(5) "v6896"
     }
     [1]=>
     array(2) {
       [0]=>
       string(3) "k60"
       [1]=>
-      string(6) "v34960"
+      string(6) "v91860"
     }
     [2]=>
     array(2) {
       [0]=>
       string(3) "k61"
       [1]=>
-      string(6) "v81361"
+      string(6) "v35561"
     }
   }
   [1]=>
@@ -175,7 +175,7 @@ array(4) {
       [0]=>
       string(2) "k6"
       [1]=>
-      string(5) "v6336"
+      string(5) "v6896"
     }
     [1]=>
     array(2) {
@@ -189,7 +189,7 @@ array(4) {
       [0]=>
       string(3) "k61"
       [1]=>
-      string(6) "v81361"
+      string(6) "v35561"
     }
   }
 }
@@ -202,21 +202,21 @@ array(3) {
       [0]=>
       string(2) "k7"
       [1]=>
-      string(5) "v7037"
+      string(5) "v6157"
     }
     [1]=>
     array(2) {
       [0]=>
       string(3) "k70"
       [1]=>
-      string(6) "v65570"
+      string(6) "v72670"
     }
     [2]=>
     array(2) {
       [0]=>
       string(3) "k71"
       [1]=>
-      string(6) "v98371"
+      string(5) "v6171"
     }
   }
   [1]=>
@@ -234,7 +234,7 @@ array(3) {
       [0]=>
       string(2) "k7"
       [1]=>
-      string(5) "v7037"
+      string(5) "v6157"
     }
     [1]=>
     array(2) {
@@ -248,7 +248,7 @@ array(3) {
       [0]=>
       string(3) "k71"
       [1]=>
-      string(6) "v98371"
+      string(5) "v6171"
     }
   }
 }

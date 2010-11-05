@@ -18,9 +18,9 @@ foreach ($array as $key => $val)
         }
     }
 }
-if ($zts)
+if (!$zts)
 {
-    echo 'skip tests in Thread Safety disabled';
+    echo 'skip tests in Thread Safety enabled';
 }
 --FILE--
 <?php
@@ -89,7 +89,7 @@ array(1) {
     [0]=>
     string(2) "k5"
     [1]=>
-    string(4) "v795"
+    string(5) "v5925"
   }
 }
 array(0) {
