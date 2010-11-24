@@ -4,6 +4,7 @@ Version 0.0.5
 -------------
 	* Fixed executeUpdate, executeDelete.
 	* Fixed handlersocket_set_error.
+	* Fixed config.m4.
 
 Version 0.0.4
 -------------
