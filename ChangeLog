@@ -1,5 +1,10 @@
 handlersocket extension changelog
 
+Version 0.0.5
+-------------
+	* Fixed executeUpdate, executeDelete.
+	* Fixed handlersocket_set_error.
+
 Version 0.0.4
 -------------
 	* Updated executeSingle arguments.

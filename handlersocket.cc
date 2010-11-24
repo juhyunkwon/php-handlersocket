@@ -429,14 +429,14 @@ static inline void handlersocket_prepare(
         modop_ref, &valary[0], valary.size());
 }
 
-static inline void handlersocket_set_error(zval *error, const char *str)
+static inline void handlersocket_set_error(zval **error, const char *str)
 {
-    if (error)
+    if (*error)
     {
-        zval_ptr_dtor(&error);
-        ALLOC_INIT_ZVAL(error);
+        zval_ptr_dtor(error);
+        ALLOC_INIT_ZVAL(*error);
     }
-    ZVAL_STRING(error, (char *)str, 1);
+    ZVAL_STRING(*error, (char *)str, 1);
 }
 
 static inline void handlersocket_get_results(
@@ -444,30 +444,50 @@ static inline void handlersocket_get_results(
 {
     size_t i;
 
-    array_init(return_value);
+    if (flds != 0)
+    {
+        array_init(return_value);
+    }
 
     const dena::string_ref *row = 0;
     while ((row = cli->get_next_row()) != 0)
     {
         zval *value;
 
-        ALLOC_INIT_ZVAL(value);
-        array_init_size(value, flds);
-
-        for (i = 0; i < flds; ++i)
+        if (flds == 0)
         {
-            const dena::string_ref& v = row[i];
+            const dena::string_ref& v = row[0];
             if (v.begin() != 0)
             {
-                add_next_index_stringl(value, (char *)v.begin(), v.size(), 1);
+                ZVAL_STRINGL(return_value, (char *)v.begin(), v.size(), 1);
+                convert_to_long(return_value);
             }
             else
             {
-                add_next_index_null(value);
+                ZVAL_LONG(return_value, 0);
             }
         }
+        else
+        {
+            ALLOC_INIT_ZVAL(value);
+            array_init_size(value, flds);
 
-        add_next_index_zval(return_value, value);
+            for (i = 0; i < flds; ++i)
+            {
+                const dena::string_ref& v = row[i];
+                if (v.begin() != 0)
+                {
+                    add_next_index_stringl(
+                        value, (char *)v.begin(), v.size(), 1);
+                }
+                else
+                {
+                    add_next_index_null(value);
+                }
+            }
+
+            add_next_index_zval(return_value, value);
+        }
     }
 }
 
@@ -499,12 +519,15 @@ static inline int handlersocket_execute(
     {
         ZVAL_BOOL(return_value, 0);
     }
-    else if (strcmp(op, HANDLERSOCKET_EXECUTE_INSERT) == 0 ||
-             (modop != NULL &&
-              (strcmp(modop, HANDLERSOCKET_EXECUTE_UPDATE) == 0 ||
-               strcmp(modop, HANDLERSOCKET_EXECUTE_DELETE) == 0)))
+    else if (strcmp(op, HANDLERSOCKET_EXECUTE_INSERT) == 0)
     {
         ZVAL_BOOL(return_value, 1);
+    }
+    else if (modop != NULL &&
+             (strcmp(modop, HANDLERSOCKET_EXECUTE_UPDATE) == 0 ||
+              strcmp(modop, HANDLERSOCKET_EXECUTE_DELETE) == 0))
+    {
+        handlersocket_get_results(cli, return_value, 0);
     }
     else
     {
@@ -596,14 +619,14 @@ static ZEND_METHOD(handlersocket, openIndex)
     if (hs->cli->get_error_code() < 0)
     {
         hs->error_no = hs->cli->get_error_code();
-        handlersocket_set_error(hs->error_str, hs->cli->get_error().c_str());
+        handlersocket_set_error(&hs->error_str, hs->cli->get_error().c_str());
         RETURN_FALSE;
     }
 
     if (hs->cli->request_send() != 0)
     {
         hs->error_no = hs->cli->get_error_code();
-        handlersocket_set_error(hs->error_str, hs->cli->get_error().c_str());
+        handlersocket_set_error(&hs->error_str, hs->cli->get_error().c_str());
         RETURN_FALSE;
     }
 
@@ -615,7 +638,7 @@ static ZEND_METHOD(handlersocket, openIndex)
     else
     {
         hs->error_no = hs->cli->get_error_code();
-        handlersocket_set_error(hs->error_str, hs->cli->get_error().c_str());
+        handlersocket_set_error(&hs->error_str, hs->cli->get_error().c_str());
         RETURN_FALSE;
     }
 
@@ -647,7 +670,7 @@ static ZEND_METHOD(handlersocket, executeSingle)
 
     if (hs->error_no != 0)
     {
-        handlersocket_set_error(hs->error_str, hs->cli->get_error().c_str());
+        handlersocket_set_error(&hs->error_str, hs->cli->get_error().c_str());
     }
 }
 
@@ -802,7 +825,7 @@ static ZEND_METHOD(handlersocket, executeMulti)
     if (hs->cli->request_send() != 0)
     {
         hs->error_no = hs->cli->get_error_code();
-        handlersocket_set_error(hs->error_str, hs->cli->get_error().c_str());
+        handlersocket_set_error(&hs->error_str, hs->cli->get_error().c_str());
         RETURN_FALSE;
     }
 
@@ -816,7 +839,7 @@ static ZEND_METHOD(handlersocket, executeMulti)
         if (result != 0)
         {
             hs->error_no = hs->cli->get_error_code();
-            handlersocket_set_error(hs->error_str, hs->cli->get_error().c_str());
+            handlersocket_set_error(&hs->error_str, hs->cli->get_error().c_str());
             add_next_index_bool(return_value, 0);
         }
         /*
@@ -868,7 +891,7 @@ static ZEND_METHOD(handlersocket, executeUpdate)
 
     if (hs->error_no != 0)
     {
-        handlersocket_set_error(hs->error_str, hs->cli->get_error().c_str());
+        handlersocket_set_error(&hs->error_str, hs->cli->get_error().c_str());
     }
 }
 
@@ -894,7 +917,7 @@ static ZEND_METHOD(handlersocket, executeDelete)
 
     if (hs->error_no != 0)
     {
-        handlersocket_set_error(hs->error_str, hs->cli->get_error().c_str());
+        handlersocket_set_error(&hs->error_str, hs->cli->get_error().c_str());
     }
 }
 
@@ -917,7 +940,7 @@ static ZEND_METHOD(handlersocket, executeInsert)
 
     if (hs->error_no != 0)
     {
-        handlersocket_set_error(hs->error_str, hs->cli->get_error().c_str());
+        handlersocket_set_error(&hs->error_str, hs->cli->get_error().c_str());
     }
 }
 
