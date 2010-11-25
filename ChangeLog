@@ -1,5 +1,9 @@
 handlersocket extension changelog
 
+Version 0.0.6
+-------------
+	* Fixed config.m4.
+
 Version 0.0.5
 -------------
 	* Fixed executeUpdate, executeDelete.

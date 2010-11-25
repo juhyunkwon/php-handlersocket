@@ -41,10 +41,11 @@ Make sure that the comment is aligned:
 
 dnl compiler C++:
 
-AC_LANG([C++])
+PHP_REQUIRE_CXX()
 
 if test "$PHP_HANDLERSOCKET" != "no"; then
   dnl # check with-path
+
   SEARCH_PATH="/usr/local /usr"     # you might want to change this
   SEARCH_FOR="/include/handlersocket/hstcpcli.hpp"  # you most likely want to change this
   if test -r $PHP_HANDLERSOCKET/$SEARCH_FOR; then # path given as parameter
@@ -65,11 +66,15 @@ if test "$PHP_HANDLERSOCKET" != "no"; then
   fi
 
   dnl # add include path
+
   PHP_ADD_INCLUDE($HANDLERSOCKET_DIR/include)
 
   dnl # check for lib
+
   LIBNAME=hsclient
   AC_MSG_CHECKING([for hsclient])
+  AC_LANG_SAVE
+  AC_LANG_CPLUSPLUS
   AC_TRY_COMPILE(
   [
     #include "handlersocket/hstcpcli.hpp"
@@ -79,10 +84,29 @@ if test "$PHP_HANDLERSOCKET" != "no"; then
     AC_MSG_RESULT(yes)
     PHP_ADD_LIBRARY_WITH_PATH($LIBNAME, $HANDLERSOCKET_DIR/lib, HANDLERSOCKET_SHARED_LIBADD)
     AC_DEFINE(HAVE_HANDLERSOCKETLIB,1,[ ])
-    -L$HANDLERSOCKET_DIR/lib -lhsclient
   ],[
     AC_MSG_ERROR([wrong hsclient lib version or lib not found])
   ])
+  AC_LANG_RESTORE
+
+  dnl # check for stdc++
+  LIBNAME=stdc++
+  AC_MSG_CHECKING([for stdc++])
+  AC_LANG_SAVE
+  AC_LANG_CPLUSPLUS
+  AC_TRY_COMPILE(
+  [
+    #include <string>
+    using namespace std;
+  ],[
+    string dummy;
+  ],[
+    AC_MSG_RESULT(yes)
+    PHP_ADD_LIBRARY($LIBNAME, , HANDLERSOCKET_SHARED_LIBADD)
+  ],[
+    AC_MSG_ERROR([wrong stdc++ lib version or lib not found])
+  ])
+  AC_LANG_RESTORE
 
   PHP_SUBST(HANDLERSOCKET_SHARED_LIBADD)
 
