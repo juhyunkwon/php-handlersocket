@@ -2,7 +2,7 @@
 
 = About =
 
-PHP implementation of a Handler Socket plugin for MySQL session wrapper.
+PHP implementation of a HandlerSocket plugin for MySQL session wrapper.
 
 = Usage =
 
@@ -20,7 +20,7 @@ CREATE TABLE `php_session` (
 ) ENGINE=InnoDB DEFAULT CHARACTER SET utf8;
 }}}
 
-Basic usage for a single Handler Socket plugin for MySQL database on localhost is as simple as the following:
+Basic usage for a single HandlerSocket plugin for MySQL database on localhost is as simple as the following:
 
 {{{
 <?php
