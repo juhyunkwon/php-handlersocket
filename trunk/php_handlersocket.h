@@ -2,7 +2,7 @@
 #ifndef PHP_HANDLERSOCKET_H
 #define PHP_HANDLERSOCKET_H
 
-#define HANDLERSOCKET_EXTENSION_VERSION "0.0.6"
+#define HANDLERSOCKET_EXTENSION_VERSION "0.0.7"
 
 extern zend_module_entry handlersocket_module_entry;
 #define phpext_handlersocket_ptr &handlersocket_module_entry
