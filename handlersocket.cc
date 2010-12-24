@@ -11,7 +11,9 @@ extern "C" {
 }
 
 #include <sstream>
-#include "handlersocket/hstcpcli.hpp"
+
+/* handlersocket */
+#include <hstcpcli.hpp>
 
 /* HandlerSocket */
 typedef struct

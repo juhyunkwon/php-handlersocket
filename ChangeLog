@@ -1,5 +1,9 @@
 handlersocket extension changelog
 
+Version 0.0.7
+-------------
+	* Added config.m4 : handlersocket include [with-handlersocket-includedir].
+
 Version 0.0.6
 -------------
 	* Fixed config.m4.
