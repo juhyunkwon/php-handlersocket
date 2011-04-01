@@ -41,7 +41,7 @@ for ($i = 0; $i < $tablesize; $i++)
     $v2 = 'v2_' . $i;
 
     $retval = $hs->executeInsert(1, array($k, $v1, $v2));
-    if (!$retval)
+    if ($retval === false)
     {
         echo $hs->getError(), PHP_EOL;
     }
@@ -63,7 +63,7 @@ for ($i = 0; $i < $tablesize; $i++)
     $k = (string)$i;
     $retval = $hs->executeUpdate(
         2, '=', array($k), array('mod_' . $i), 1000, 0);
-    if (!$retval)
+    if ($retval === false)
     {
         echo $hs->getError(), PHP_EOL;
     }
@@ -84,7 +84,7 @@ for ($i = 0; $i < $tablesize; $i = $i + 2)
 {
     $k = (string)$i;
     $retval = $hs->executeDelete(3, '=', array($k), 1000, 0);
-    if (!$retval)
+    if ($retval === false)
     {
         echo $hs->getError(), PHP_EOL;
     }

@@ -41,7 +41,7 @@ for ($i = 0; $i < $tablesize; $i++)
     $v2 = 'v2_' . $i;
 
     $retval = $hs->executeSingle(1, '+', array($k, $v1, $v2));
-    if (!$retval)
+    if ($retval === false)
     {
         echo $hs->getError(), PHP_EOL;
     }
@@ -73,7 +73,7 @@ for ($i = 0; $i < $tablesize; $i++)
             2, '=', array($k), 1000, 0,
             HANDLERSOCKET_UPDATE, array('mod_' . $i));
     }
-    if (!$retval)
+    if ($retval === false)
     {
         echo $hs->getError(), PHP_EOL;
     }
@@ -103,7 +103,7 @@ for ($i = 0; $i < $tablesize; $i = $i + 2)
         $retval = $hs->executeSingle(
             3, '=', array($k), 1000, 0, HANDLERSOCKET_DELETE);
     }
-    if (!$retval)
+    if ($retval === false)
     {
         echo $hs->getError(), PHP_EOL;
     }

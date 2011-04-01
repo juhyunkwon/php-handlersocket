@@ -10,7 +10,7 @@ $table = 'hstesttbl';
 $hs = new HandlerSocket($host, $port);
 if (!($hs->openIndex(1, $dbname, $table, HandlerSocket::PRIMARY, 'k,v')))
 {
-    echo $hs->getError(), PHP_EOL;
+    echo __LINE__, ':', $hs->getError(), ':', PHP_EOL;
     die();
 }
 
@@ -31,13 +31,13 @@ unset($hs);
 $hs = new HandlerSocket($host, $port_wr);
 if (!($hs->openIndex(2, $dbname, $table, '', 'v')))
 {
-    echo $hs->getError(), PHP_EOL;
+    echo __LINE__, ':', $hs->getError(), ':', PHP_EOL;
     die();
 }
 
-if (!($hs->executeUpdate(2, '=', array('k1'), array('V1'), 1, 0)))
+if ($hs->executeUpdate(2, '=', array('k1'), array('V1'), 1, 0) === false)
 {
-    echo $hs->getError(), PHP_EOL;
+    echo __LINE__, ':', $hs->getError(), ':', PHP_EOL;
     die();
 }
 
@@ -48,21 +48,22 @@ unset($hs);
 $hs = new HandlerSocket($host, $port_wr);
 if (!($hs->openIndex(3, $dbname, $table, '', 'k,v')))
 {
-    echo $hs->getError(), PHP_EOL;
+    echo __LINE__, ':', $hs->getError(), ':', PHP_EOL;
     die();
 }
 
-if (!($hs->executeInsert(3, array('k2', 'v2'))))
+if ($hs->executeInsert(3, array('k2', 'v2')) === false)
 {
-    echo $hs->getError(), PHP_EOL;
+    echo __LINE__, ':', $hs->getError(), ':', PHP_EOL;
 }
-if (!($hs->executeInsert(3, array('k3', 'v3'))))
+
+if ($hs->executeInsert(3, array('k3', 'v3')) === false)
 {
-    echo $hs->getError(), PHP_EOL;
+    echo __LINE__, ':', $hs->getError(), ':', PHP_EOL;
 }
-if (!($hs->executeInsert(3, array('k4', 'v4'))))
+if ($hs->executeInsert(3, array('k4', 'v4')) === false)
 {
-    echo $hs->getError(), PHP_EOL;
+    echo __LINE__, ':', $hs->getError(), ':', PHP_EOL;
 }
 
 unset($hs);
@@ -72,12 +73,13 @@ unset($hs);
 $hs = new HandlerSocket($host, $port_wr);
 if (!($hs->openIndex(4, $dbname, $table, '', '')))
 {
-    echo $hs->getError(), PHP_EOL;
+    echo __LINE__, ':', $hs->getError(), ':', PHP_EOL;
     die();
 }
 
 if (!($hs->executeDelete(4, '=', array('k2'))))
 {
-    echo $hs->getError(), PHP_EOL;
+    echo __LINE__, ':', $hs->getError(), ':', PHP_EOL;
     die();
 }
+
