@@ -1,5 +1,9 @@
 handlersocket extension changelog
 
+Version 0.0.8
+-------------
+	* Fixed port parameter.
+
 Version 0.0.7
 -------------
 	* Added config.m4 : handlersocket include [with-handlersocket-includedir].

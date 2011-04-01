@@ -365,7 +365,7 @@ inline static void array_to_conf(zval *opts, dena::config& conf)
         }
         else if (strcmp(key, "port") == 0)
         {
-            conf["port"] = long_to_string(Z_LVAL_PP(data));
+            conf["port"] = std::string(Z_STRVAL_PP(data));
         }
         else if (strcmp(key, "timeout") == 0)
         {
@@ -550,7 +550,8 @@ static ZEND_METHOD(handlersocket, __construct)
     HANDLERSOCKET_OBJECT;
     char *host;
     int host_len;
-    int port;
+    char *port;
+    int port_len;
     zval *opts = NULL;
 
     dena::config conf;
@@ -558,19 +559,19 @@ static ZEND_METHOD(handlersocket, __construct)
     dena::hstcpcli_ptr cli;
 
     if (zend_parse_parameters(
-            ZEND_NUM_ARGS() TSRMLS_CC, "sl|a",
-            &host, &host_len, &port, &opts) == FAILURE)
+            ZEND_NUM_ARGS() TSRMLS_CC, "ss|a",
+            &host, &host_len, &port, &port_len, &opts) == FAILURE)
     {
         return;
     }
 
-    if (strlen(host) == 0)
+    if (strlen(host) == 0 || strlen(port) == 0)
     {
         RETURN_NULL();
     }
 
     conf["host"] = std::string(host);
-    conf["port"] = long_to_string(port);
+    conf["port"] = std::string(port);
 
     array_to_conf(opts, conf);
 
