@@ -2,6 +2,7 @@
 #labels Featured
 
 = The HandlerSocket class methods =
+Version: 0.1.0
 
 == HandlerSocket::__construct ==
 Creates a new HandlerSocket object
