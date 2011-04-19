@@ -2,7 +2,7 @@
 #labels Featured
 
 = The HandlerSocket class methods =
-Version: 0.1.0
+Version: 0.2.0
 
 == HandlerSocket::__construct ==
 Creates a new HandlerSocket object
@@ -41,7 +41,7 @@ Returns TRUE if the success; FALSE if not.
 To read or insert or update or delete record from a table using an index.
 
 {{{
-public mixed HandlerSocket::executeSingle ( int $id, string $op, array $fields [, int $limit, int $skip, strint $modop, array $values, array $filters ] )
+public mixed HandlerSocket::executeSingle ( int $id, string $op, array $fields [, int $limit, int $skip, strint $modop, array $values, array $filters, int $invalues_key, array $invalues ] )
 }}}
 
 === Parameters ===
@@ -53,6 +53,9 @@ public mixed HandlerSocket::executeSingle ( int $id, string $op, array $fields [
 || modop || the modification operation. ('U', 'D') ||
 || values ||  new value for the row (For the 'U' operation) ||
 || filters || filter options. ||
+|| invalues_key ||  ? ||
+|| invalues || IN options. ||
+
 
 === Return Values ===
 Returns execute results.
@@ -79,7 +82,7 @@ Returns execute results.
 To update a record from a table using an index.
 
 {{{
-public mixed HandlerSocket::executeUpdate ( int $id, string $op, array $fields, array $values [, int $limit, int $skip, array $filters ] )
+public mixed HandlerSocket::executeUpdate ( int $id, string $op, array $fields, array $values [, int $limit, int $skip, array $filters, int $invalues_key, array $invalues ] )
 }}}
 
 === Parameters ===
@@ -90,9 +93,11 @@ public mixed HandlerSocket::executeUpdate ( int $id, string $op, array $fields, 
 || limit ||  maximum number of records ||
 || skip || number of records skipped before retrieving records ||
 || filters || filter options. ||
+|| invalues_key ||  ? ||
+|| invalues || IN options. ||
 
 ==== Notes ====
-HandlerSocket::executeSingle($id, $op, $fields, $limit, $skip, 'U', $values, $filters) same behavior.
+HandlerSocket::executeSingle($id, $op, $fields, $limit, $skip, 'U', $values, $filters, $invalues_key, $invalues) same behavior.
 
 === Return Values ===
 Returns execute results.
@@ -102,7 +107,7 @@ Returns execute results.
 To delete a record from a table using an index.
 
 {{{
-public mixed HandlerSocket::executeDelete ( int $id, string $op, array $fields [, int $limit, int $skip, array $filters ] )
+public mixed HandlerSocket::executeDelete ( int $id, string $op, array $fields [, int $limit, int $skip, array $filters, int $invalues_key, array $invalues ] )
 }}}
 
 === Parameters ===
@@ -112,9 +117,11 @@ public mixed HandlerSocket::executeDelete ( int $id, string $op, array $fields [
 || limit ||  maximum number of records ||
 || skip || number of records skipped before retrieving records ||
 || filters || filter options. ||
+|| invalues_key ||  ? ||
+|| invalues || IN options. ||
 
 ==== Notes ====
-HandlerSocket::executeSingle($id, $op, $fields, $limit, $skip, 'D', NULL, $filters) same behavior.
+HandlerSocket::executeSingle($id, $op, $fields, $limit, $skip, 'D', NULL, $filters, $invalues_key, $invalues) same behavior.
 
 === Return Values ===
 Returns execute results.
