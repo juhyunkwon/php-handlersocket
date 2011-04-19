@@ -1,5 +1,5 @@
 --TEST--
-not-found
+IN (multi method)
 --SKIPIF--
 --FILE--
 <?php
@@ -11,10 +11,11 @@ init_mysql_testdb($mysql);
 
 $table = 'hstesttbl';
 $tablesize = 100;
+
 $sql = sprintf(
     'CREATE TABLE %s ( ' .
-    'k varchar(30) PRIMARY KEY, ' .
-    'v varchar(30) NOT NULL) ' .
+    'k varchar(30) primary key, ' .
+    'v varchar(30) not null) ' .
     'Engine = innodb',
     mysql_real_escape_string($table));
 if (!mysql_query($sql, $mysql))
@@ -27,7 +28,7 @@ $valmap = array();
 for ($i = 0; $i < $tablesize; $i++)
 {
     $k = 'k' . $i;
-    $v = 'v' . _rand($i) . $i;
+    $v = 'v' . _rand($i) . '-' . $i;
 
     $sql = sprintf(
         'INSERT INTO ' . $table . ' values (\'%s\', \'%s\')',
@@ -41,23 +42,49 @@ for ($i = 0; $i < $tablesize; $i++)
     $valmap[$k] = $v;
 }
 
-
 $hs = new HandlerSocket(MYSQL_HOST, MYSQL_HANDLERSOCKET_PORT);
-if (!($hs->openIndex(1, MYSQL_DBNAME, $table, '', 'k,v')))
+if (!$hs->openIndex(1, MYSQL_DBNAME, $table, '', 'k,v'))
 {
     die();
 }
 
-//found
-$retval = $hs->executeSingle(1, '=', array('k5'), 1, 0);
-_dump($retval);
+$vs = array('k10', 'k20x', 'k30', 'k40', 'k50');
 
-//not found
-$retval = $hs->executeSingle(1, '=', array('k000000'), 1, 0);
-_dump($retval);
+// select k, v from $table where k in $vs
+$retval = $hs->executeMulti(
+    array(array(1, '=', array(''), 10000, 0, null, null, null, 0, $vs)));
 
+echo 'HS', PHP_EOL;
+if (!$retval)
+{
+    echo $hs->getError(), PHP_EOL;
+}
+else
+{
+    foreach ($retval as $values)
+    {
+        foreach ($values as $val)
+        {
+            echo $val[0], ' ', $val[1], PHP_EOL;
+        }
+    }
+}
+
+echo 'SQL', PHP_EOL;
+$sql = "SELECT k, v FROM $table WHERE k IN ('k10', 'k20x', 'k30', 'k40', 'k50')";
+$result = mysql_query($sql, $mysql);
+if ($result)
+{
+    while ($row = mysql_fetch_assoc($result))
+    {
+        echo $row['k'], ' ', $row['v'], PHP_EOL;
+    }
+    mysql_free_result($result);
+}
 
 mysql_close($mysql);
+
+echo 'END', PHP_EOL;
 
 function _rand($i = 0)
 {
@@ -72,36 +99,15 @@ function _rand($i = 0)
                   867, 759, 703);
     return $rand[$i];
 }
-
-function _dump($data = array())
-{
-    if (empty($data))
-    {
-        echo '[0]', PHP_EOL;
-    }
-    else
-    {
-        foreach ($data as $key => $value)
-        {
-            echo '[', $key, ']';
-            foreach ($value as $val)
-            {
-                if (is_array($val))
-                {
-                    foreach ($val as $v)
-                    {
-                        echo '[', $v, ']';
-                    }
-                }
-                else
-                {
-                    echo '[', $val, ']';
-                }
-            }
-            echo PHP_EOL;
-        }
-    }
-}
 --EXPECT--
-[0][k5][v5375]
-[0]
+HS
+k10 v704-10
+k30 v52-30
+k40 v878-40
+k50 v682-50
+SQL
+k10 v704-10
+k30 v52-30
+k40 v878-40
+k50 v682-50
+END

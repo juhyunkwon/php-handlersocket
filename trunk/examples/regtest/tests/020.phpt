@@ -17,7 +17,7 @@ if (!mysql_query($sql, $mysql))
     die(mysql_error());
 }
 
-$hs = new HandlerSocket(MYSQL_HOST, MYSQL_HANDLERSOCKET_PORT_WR);
+$hs = new HandlerSocket(MYSQL_HOST, MYSQL_HANDLERSOCKET_PORT);
 $retval = $hs->openIndex(1, MYSQL_DBNAME, $table, '', 'k,v');
 echo 'open_index 1st r=', var_export($retval, true), PHP_EOL;
 unset($hs);
@@ -33,7 +33,7 @@ if (!mysql_query($sql, $mysql))
     die(mysql_error());
 }
 
-$hs = new HandlerSocket(MYSQL_HOST, MYSQL_HANDLERSOCKET_PORT_WR);
+$hs = new HandlerSocket(MYSQL_HOST, MYSQL_HANDLERSOCKET_PORT);
 $retval = $hs->openIndex(1, MYSQL_DBNAME, $table, '', 'k,v');
 echo 'open_index 2nd r=', var_export($retval, true), PHP_EOL;
 unset($hs);

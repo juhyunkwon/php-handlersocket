@@ -1,5 +1,5 @@
 --TEST--
-not-found
+IN and filters (multi method)
 --SKIPIF--
 --FILE--
 <?php
@@ -11,10 +11,12 @@ init_mysql_testdb($mysql);
 
 $table = 'hstesttbl';
 $tablesize = 100;
+
 $sql = sprintf(
     'CREATE TABLE %s ( ' .
-    'k varchar(30) PRIMARY KEY, ' .
-    'v varchar(30) NOT NULL) ' .
+    'k varchar(30) primary key, ' .
+    'v varchar(30) not null, ' .
+    'v2 int not null) ' .
     'Engine = innodb',
     mysql_real_escape_string($table));
 if (!mysql_query($sql, $mysql))
@@ -27,12 +29,14 @@ $valmap = array();
 for ($i = 0; $i < $tablesize; $i++)
 {
     $k = 'k' . $i;
-    $v = 'v' . _rand($i) . $i;
+    $v = 'v' . _rand($i) . '-' . $i;
+    $v2 = ($i / 10) % 2;
 
     $sql = sprintf(
-        'INSERT INTO ' . $table . ' values (\'%s\', \'%s\')',
+        'INSERT INTO ' . $table . ' values (\'%s\', \'%s\', \'%s\')',
         mysql_real_escape_string($k),
-        mysql_real_escape_string($v));
+        mysql_real_escape_string($v),
+        mysql_real_escape_string($v2));
     if (!mysql_query($sql, $mysql))
     {
         break;
@@ -41,23 +45,52 @@ for ($i = 0; $i < $tablesize; $i++)
     $valmap[$k] = $v;
 }
 
-
 $hs = new HandlerSocket(MYSQL_HOST, MYSQL_HANDLERSOCKET_PORT);
-if (!($hs->openIndex(1, MYSQL_DBNAME, $table, '', 'k,v')))
+if (!$hs->openIndex(1, MYSQL_DBNAME, $table, '', 'k,v,v2', 'v2'))
 {
     die();
 }
 
-//found
-$retval = $hs->executeSingle(1, '=', array('k5'), 1, 0);
-_dump($retval);
+$vs = array('k10', 'k20x', 'k30', 'k40', 'k50');
 
-//not found
-$retval = $hs->executeSingle(1, '=', array('k000000'), 1, 0);
-_dump($retval);
+// select k, v, v2 from $table where k in $vs and v2 = 1
+$retval = $hs->executeMulti(
+    array(array(1, '=', array(''), 10000, 0, null, null,
+                array(array('F', '=', 0, '1')), 0, $vs)));
 
+echo 'HS', PHP_EOL;
+if (!$retval)
+{
+    echo $hs->getError(), PHP_EOL;
+}
+else
+{
+    foreach ($retval as $values)
+    {
+        foreach ($values as $val)
+        {
+            echo $val[0], ' ', $val[1], ' ', $val[2], PHP_EOL;
+        }
+    }
+}
+
+echo 'SQL', PHP_EOL;
+$sql = "SELECT k, v, v2 FROM $table"
+     . " WHERE k IN ('k10', 'k20x', 'k30', 'k40', 'k50')"
+     . " AND v2 = '1' ORDER BY k";
+$result = mysql_query($sql, $mysql);
+if ($result)
+{
+    while ($row = mysql_fetch_assoc($result))
+    {
+        echo $row['k'], ' ', $row['v'], ' ', $row['v2'], PHP_EOL;
+    }
+    mysql_free_result($result);
+}
 
 mysql_close($mysql);
+
+echo 'END', PHP_EOL;
 
 function _rand($i = 0)
 {
@@ -72,36 +105,13 @@ function _rand($i = 0)
                   867, 759, 703);
     return $rand[$i];
 }
-
-function _dump($data = array())
-{
-    if (empty($data))
-    {
-        echo '[0]', PHP_EOL;
-    }
-    else
-    {
-        foreach ($data as $key => $value)
-        {
-            echo '[', $key, ']';
-            foreach ($value as $val)
-            {
-                if (is_array($val))
-                {
-                    foreach ($val as $v)
-                    {
-                        echo '[', $v, ']';
-                    }
-                }
-                else
-                {
-                    echo '[', $val, ']';
-                }
-            }
-            echo PHP_EOL;
-        }
-    }
-}
 --EXPECT--
-[0][k5][v5375]
-[0]
+HS
+k10 v704-10 1
+k30 v52-30 1
+k50 v682-50 1
+SQL
+k10 v704-10 1
+k30 v52-30 1
+k50 v682-50 1
+END
