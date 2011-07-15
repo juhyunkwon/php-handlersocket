@@ -39,91 +39,7 @@ PHP_ARG_WITH(handlersocket, for handlersocket support,
 Make sure that the comment is aligned:
 [  --with-handlersocket                 Include handlersocket support])
 
-dnl compiler C++:
-
-PHP_REQUIRE_CXX()
-
-dnl HandlerSocket include dir
-
-PHP_ARG_WITH(handlersocket-includedir, for handlersocket header,
-[  --with-handlersocket-includedir=DIR  handlersocket header files], yes)
-
 if test "$PHP_HANDLERSOCKET" != "no"; then
-  dnl # check with-path
-
-  if test "$PHP_HANDLERSOCKET_INCLUDEDIR" != "no" && test "$PHP_HANDLERSOCKET_INCLUDEDIR" != "yes"; then
-    if test -r "$PHP_HANDLERSOCKET_INCLUDEDIR/hstcpcli.hpp"; then
-      HANDLERSOCKET_DIR="$PHP_HANDLERSOCKET_INCLUDEDIR"
-    else
-      AC_MSG_ERROR([Can't find handlersocket headers under "$PHP_HANDLERSOCKET_INCLUDEDIR"])
-    fi
-  else
-    SEARCH_PATH="/usr/local /usr"     # you might want to change this
-    SEARCH_FOR="/include/handlersocket/hstcpcli.hpp"  # you most likely want to change this
-    if test -r $PHP_HANDLERSOCKET/$SEARCH_FOR; then # path given as parameter
-      HANDLERSOCKET_DIR="$PHP_HANDLERSOCKET/include/handlersocket"
-    else # search default path list
-      AC_MSG_CHECKING([for hsclient files in default path])
-      for i in $SEARCH_PATH ; do
-        if test -r $i/$SEARCH_FOR; then
-          HANDLERSOCKET_DIR="$i/include/handlersocket"
-          AC_MSG_RESULT(found in $i)
-        fi
-      done
-    fi
-  fi
-
-  if test -z "$HANDLERSOCKET_DIR"; then
-    AC_MSG_RESULT([not found])
-    AC_MSG_ERROR([Can't find hsclient headers])
-  fi
-
-  dnl # add include path
-
-  PHP_ADD_INCLUDE($HANDLERSOCKET_DIR)
-
-  dnl # check for lib
-
-  LIBNAME=hsclient
-  AC_MSG_CHECKING([for hsclient])
-  AC_LANG_SAVE
-  AC_LANG_CPLUSPLUS
-  AC_TRY_COMPILE(
-  [
-    #include "$HANDLERSOCKET_DIR/hstcpcli.hpp"
-  ],[
-    dena::hstcpcli_ptr cli;
-  ],[
-    AC_MSG_RESULT(yes)
-    PHP_ADD_LIBRARY_WITH_PATH($LIBNAME, $HANDLERSOCKET_DIR/lib, HANDLERSOCKET_SHARED_LIBADD)
-    AC_DEFINE(HAVE_HANDLERSOCKETLIB,1,[ ])
-  ],[
-    AC_MSG_RESULT([error])
-    AC_MSG_ERROR([wrong hsclient lib version or lib not found : $HANDLERSOCKET_DIR])
-  ])
-  AC_LANG_RESTORE
-
-  dnl # check for stdc++
-  LIBNAME=stdc++
-  AC_MSG_CHECKING([for stdc++])
-  AC_LANG_SAVE
-  AC_LANG_CPLUSPLUS
-  AC_TRY_COMPILE(
-  [
-    #include <string>
-    using namespace std;
-  ],[
-    string dummy;
-  ],[
-    AC_MSG_RESULT(yes)
-    PHP_ADD_LIBRARY($LIBNAME, , HANDLERSOCKET_SHARED_LIBADD)
-  ],[
-    AC_MSG_ERROR([wrong stdc++ lib version or lib not found])
-  ])
-  AC_LANG_RESTORE
-
-  PHP_SUBST(HANDLERSOCKET_SHARED_LIBADD)
-
   ifdef([PHP_INSTALL_HEADERS],
   [
     PHP_INSTALL_HEADERS([ext/handlersocket], [php_handlersocket.h])
@@ -131,5 +47,5 @@ if test "$PHP_HANDLERSOCKET" != "no"; then
     PHP_ADD_MAKEFILE_FRAGMENT
   ])
 
-  PHP_NEW_EXTENSION(handlersocket, handlersocket.cc, $ext_shared)
+  PHP_NEW_EXTENSION(handlersocket, handlersocket.c, $ext_shared)
 fi
