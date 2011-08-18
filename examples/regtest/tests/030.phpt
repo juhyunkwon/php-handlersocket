@@ -1,5 +1,5 @@
 --TEST--
-multiple modify requests
+HandlerSocketIndex: not-found
 --SKIPIF--
 --FILE--
 <?php
@@ -41,41 +41,25 @@ for ($i = 0; $i < $tablesize; $i++)
     $valmap[$k] = $v;
 }
 
-
-$hs = new HandlerSocket(MYSQL_HOST, MYSQL_HANDLERSOCKET_PORT_WR);
-if (!($hs->openIndex(1, MYSQL_DBNAME, $table, '', 'k,v')))
+try
 {
+    $hs = new HandlerSocket(MYSQL_HOST, MYSQL_HANDLERSOCKET_PORT);
+    $index = $hs->createIndex(1, MYSQL_DBNAME, $table, '', 'k,v');
+}
+catch (HandlerSocketException $exception)
+{
+    echo $exception->getMessage(), PHP_EOL;
     die();
 }
 
-
-echo 'DEL', PHP_EOL;
-$retval = $hs->executeMulti(
-    array(
-        array(1, '=', array('k5'), 1, 0, 'D'),
-        array(1, '>=', array('k5'), 2, 0)
-        ));
+//found
+$retval = $index->find(array('=' => 'k5'), 1, 0);
 _dump($retval);
 
-echo 'DELINS', PHP_EOL;
-$retval = $hs->executeMulti(
-    array(
-        array(1, '>=', array('k6'), 3, 0),
-        array(1, '=', array('k60'), 1, 0, 'D'),
-        array(1, '+', array('k60', 'INS')),
-        array(1, '>=', array('k6'), 3, 0)
-        ));
+//not found
+$retval = $index->find(array('=' => 'k000000'), 1, 0);
 _dump($retval);
 
-
-echo 'DELUPUP', PHP_EOL;
-$retval = $hs->executeMulti(
-    array(
-        array(1, '>=', array('k7'), 3, 0),
-        array(1, '=', array('k70'), 1, 0, 'U', array('k70', 'UP')),
-        array(1, '>=', array('k7'), 3, 0)
-        ));
-_dump($retval);
 
 mysql_close($mysql);
 
@@ -103,8 +87,8 @@ function _dump($data = array())
     {
         foreach ($data as $key => $value)
         {
-            echo '[0]';
-            foreach ((array)$value as $val)
+            echo '[', $key, ']';
+            foreach ($value as $val)
             {
                 if (is_array($val))
                 {
@@ -123,15 +107,5 @@ function _dump($data = array())
     }
 }
 --EXPECT--
-DEL
-[0][1]
-[0][k50][v68250][k51][v93451]
-DELINS
-[0][k6][v5926][k60][v14460][k61][v15261]
-[0][1]
-[0][1]
-[0][k6][v5926][k60][INS][k61][v15261]
-DELUPUP
-[0][k7][v4147][k70][v41370][k71][v6971]
-[0][1]
-[0][k7][v4147][k70][UP][k71][v6971]
+[0][k5][v5375]
+[0]

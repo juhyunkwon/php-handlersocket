@@ -1,5 +1,5 @@
 --TEST--
-IN and filters (multi method)
+HandlerSocketIndex: IN (multi method)
 --SKIPIF--
 --FILE--
 <?php
@@ -15,8 +15,7 @@ $tablesize = 100;
 $sql = sprintf(
     'CREATE TABLE %s ( ' .
     'k varchar(30) primary key, ' .
-    'v varchar(30) not null, ' .
-    'v2 int not null) ' .
+    'v varchar(30) not null) ' .
     'Engine = innodb',
     mysql_real_escape_string($table));
 if (!mysql_query($sql, $mysql))
@@ -30,13 +29,11 @@ for ($i = 0; $i < $tablesize; $i++)
 {
     $k = 'k' . $i;
     $v = 'v' . _rand($i) . '-' . $i;
-    $v2 = ($i / 10) % 2;
 
     $sql = sprintf(
-        'INSERT INTO ' . $table . ' values (\'%s\', \'%s\', \'%s\')',
+        'INSERT INTO ' . $table . ' values (\'%s\', \'%s\')',
         mysql_real_escape_string($k),
-        mysql_real_escape_string($v),
-        mysql_real_escape_string($v2));
+        mysql_real_escape_string($v));
     if (!mysql_query($sql, $mysql))
     {
         break;
@@ -45,45 +42,47 @@ for ($i = 0; $i < $tablesize; $i++)
     $valmap[$k] = $v;
 }
 
-$hs = new HandlerSocket(MYSQL_HOST, MYSQL_HANDLERSOCKET_PORT);
-if (!$hs->openIndex(1, MYSQL_DBNAME, $table, '', 'k,v,v2', 'v2'))
+try
 {
+    $hs = new HandlerSocket(MYSQL_HOST, MYSQL_HANDLERSOCKET_PORT);
+    $index = $hs->createIndex(1, MYSQL_DBNAME, $table, '', 'k,v');
+}
+catch (HandlerSocketException $exception)
+{
+    echo $exception->getMessage(), PHP_EOL;
     die();
 }
 
 $vs = array('k10', 'k20x', 'k30', 'k40', 'k50');
 
-// select k, v, v2 from $table where k in $vs and v2 = 1
-$retval = $hs->executeMulti(
-    array(array(1, '=', array(''), 10000, 0, null, null,
-                array(array('F', '=', 0, '1')), 0, $vs)));
+// select k, v from $table where k in $vs
+$retval = $index->multi(
+    array(array('find', '', 10000, 0, array('in' => array($vs)))));
 
 echo 'HS', PHP_EOL;
 if (!$retval)
 {
-    echo $hs->getError(), PHP_EOL;
+    echo $index->getError(), PHP_EOL;
 }
 else
 {
-    foreach ((array)$retval as $values)
+    foreach ($retval as $values)
     {
-        foreach ((array)$values as $val)
+        foreach ($values as $val)
         {
-            echo $val[0], ' ', $val[1], ' ', $val[2], PHP_EOL;
+            echo $val[0], ' ', $val[1], PHP_EOL;
         }
     }
 }
 
 echo 'SQL', PHP_EOL;
-$sql = "SELECT k, v, v2 FROM $table"
-     . " WHERE k IN ('k10', 'k20x', 'k30', 'k40', 'k50')"
-     . " AND v2 = '1' ORDER BY k";
+$sql = "SELECT k, v FROM $table WHERE k IN ('k10', 'k20x', 'k30', 'k40', 'k50')";
 $result = mysql_query($sql, $mysql);
 if ($result)
 {
     while ($row = mysql_fetch_assoc($result))
     {
-        echo $row['k'], ' ', $row['v'], ' ', $row['v2'], PHP_EOL;
+        echo $row['k'], ' ', $row['v'], PHP_EOL;
     }
     mysql_free_result($result);
 }
@@ -105,13 +104,16 @@ function _rand($i = 0)
                   867, 759, 703);
     return $rand[$i];
 }
+
 --EXPECT--
 HS
-k10 v704-10 1
-k30 v52-30 1
-k50 v682-50 1
+k10 v704-10
+k30 v52-30
+k40 v878-40
+k50 v682-50
 SQL
-k10 v704-10 1
-k30 v52-30 1
-k50 v682-50 1
+k10 v704-10
+k30 v52-30
+k40 v878-40
+k50 v682-50
 END

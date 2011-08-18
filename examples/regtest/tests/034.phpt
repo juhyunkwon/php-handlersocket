@@ -1,5 +1,5 @@
 --TEST--
-filters
+HandlerSocketIndex: filters
 --SKIPIF--
 --FILE--
 <?php
@@ -49,62 +49,62 @@ for ($i = 0; $i < $tablesize; $i++)
     }
 }
 
-
-$hs = new HandlerSocket(MYSQL_HOST, MYSQL_HANDLERSOCKET_PORT_WR);
-if (!($hs->openIndex(1, MYSQL_DBNAME, $table, '', 'k1,k2,v1,v2', 'k2')))
+try
 {
-    die();
+    $hs = new HandlerSocket(MYSQL_HOST, MYSQL_HANDLERSOCKET_PORT_WR);
+    $index1 = $hs->createIndex(1, MYSQL_DBNAME, $table, '', 'k1,k2,v1,v2',
+                             array('filter' => 'k2'));
+    $index2 = $hs->createIndex(2, MYSQL_DBNAME, $table, '', 'k1,k2,v1,v2',
+                             array('filter' => array('k1','k2','v1','v2')));
+    $index3 = $hs->createIndex(3, MYSQL_DBNAME, $table, '', 'v1',
+                             array('filter' => 'k1,v2'));
 }
-if (!($hs->openIndex(2, MYSQL_DBNAME, $table, '', 'k1,k2,v1,v2', 'k1,k2,v1,v2')))
+catch (HandlerSocketException $exception)
 {
-    die();
-}
-if (!($hs->openIndex(3, MYSQL_DBNAME, $table, '', 'v1', 'k1,v2')))
-{
+    echo $exception->getMessage(), PHP_EOL;
     die();
 }
 
 echo 'VAL', PHP_EOL;
-$retval = $hs->executeMulti(
+$retval = $index1->multi(
     array(
-        array(1, '>=', array('', ''), 1000, 0),
+        array('find', array('>=' => array('', '')), 1000, 0)
     )
 );
 _dump($retval);
 
 // select k1, k2, v1, v2 ... where (k1, k2) >= ('', '') and k2 = 'k2_5'
 echo 'FILTER', PHP_EOL;
-$retval = $hs->executeSingle(
-    1, '>=', array('', ''), 1000, 0, null, null,
-    array(array('F', '=', 0, 'k2_5')));
+$retval = $index1->find(array('>=' => array('', '')), 1000, 0,
+                        array('filter' => array('=', 'k2', 'k2_5')));
 _dump($retval, false);
 
 // same as above
 echo 'FILTER', PHP_EOL;
-$retval = $hs->executeMulti(
+$retval = $index1->multi(
     array(
-        array(1, '>=', array('', ''), 1000, 0, null, null,
-              array(array('F', '=', 0, 'k2_5')))
+        array('find', array('>=' => array('', '')), 1000, 0,
+              array('filter' => array('=', 'k2', 'k2_5')))
     )
 );
 _dump($retval);
 
 // select k1, k2, v1, v2 ... where (k1, k2) >= ('', '') and v1 = 3
 echo 'FILTER', PHP_EOL;
-$retval = $hs->executeMulti(
+$retval = $index2->multi(
     array(
-        array(2, '>=', array('', ''), 1000, 0, null, null,
-              array(array('F', '=', 2, 3)))
+        array('find', array('>=' => array('', '')), 1000, 0,
+              array('filter' => array('=', 'v1', 3)))
     )
 );
 _dump($retval);
 
 // select k1, k2, v1, v2 ... where (k1, k2) >= ('k1_1', '') and k1 <= 'k1_2'
 echo 'FILTER', PHP_EOL;
-$retval = $hs->executeMulti(
+$retval = $index2->multi(
     array(
-        array(2, '>=', array('k1_1', ''), 1000, 0, null, null,
-              array(array('W', '<=', 0, 'k1_2')))
+        array('find', array('>=' => array('k1_1', '')), 1000, 0,
+              array('while' => array('<=', 'k1', 'k1_2')))
     )
 );
 _dump($retval);
@@ -112,28 +112,29 @@ _dump($retval);
 // select k1, k2, v1, v2 ... where (k1, k2) >= ('k1_1', '') and k1 <= 'k1_2'
 //   and v2 >= 10
 echo 'FILTER', PHP_EOL;
-$retval = $hs->executeMulti(
+$retval = $index2->multi(
     array(
-        array(2, '>=', array('k1_1', ''), 1000, 0, null, null,
-              array(array('W', '<=', 0, 'k1_2'), array('F', '>=', 3, 10)))
+        array('find', array('>=' => array('k1_1', '')), 1000, 0,
+              array('while' => array('<=', 'k1', 'k1_2'),
+                    'filter' => array('>=', 'v2', 10)))
     )
 );
 _dump($retval);
 
 // update ... set v2 = -1 where (k1, k2) >= ('k1_1', '') and v2 = 10
 echo 'FILTER', PHP_EOL;
-$retval = $hs->executeMulti(
+$retval = $index3->multi(
     array(
-        array(3, '>=', array('k1_1', ''), 1000, 0, 'U', array(-1),
-              array(array('F', '=', 1, 10)))
+        array('update', array('>=' => array('k1_1', '')), array('U' => -1), 
+                        1000, 0, array('filter' => array('=', 'v2', 10)))
     )
 );
 _dump($retval);
 
 echo 'VAL', PHP_EOL;
-$retval = $hs->executeMulti(
+$retval = $index1->multi(
     array(
-        array(1, '>=', array('', ''), 1000, 0)
+        array('find', array('>=' => array('', '')), 1000, 0)
     )
 );
 _dump($retval);
@@ -164,7 +165,7 @@ function _dump($data = array(), $multi = true)
         }
         else
         {
-            foreach ($value as $key => $val)
+            foreach ((array)$value as $key => $val)
             {
                 echo '[', $val, ']';
             }
@@ -172,6 +173,7 @@ function _dump($data = array(), $multi = true)
         }
     }
 }
+
 --EXPECT--
 VAL
 [k1_0][k2_0][0][0]

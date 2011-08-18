@@ -257,9 +257,7 @@ function write_information($show_html)
 PHP_SAPI    : " , PHP_SAPI , "
 PHP_VERSION : " , phpversion() , "
 ZEND_VERSION: " , zend_version() , "
-PHP_OS      : " , PHP_OS , " - " , php_uname() , "
-INI actual  : " , realpath(get_cfg_var("cfg_file_path")) , "
-More .INIs  : " , (function_exists(\'php_ini_scanned_files\') ? str_replace("\n","", php_ini_scanned_files()) : "** not determined **"); ?>';
+PHP_OS      : " , PHP_OS , " - " , php_uname(); ?>';
     save_text($info_file, $php_info);
     $info_params = array();
     settings2array($ini_overwrites, $info_params);
@@ -399,6 +397,7 @@ $temp_target = null;
 $temp_urlbase = null;
 $conf_passed = null;
 $no_clean = false;
+$output_color = false;
 
 $cfgtypes = array('show', 'keep');
 $cfgfiles = array('skip', 'php', 'clean', 'out', 'diff', 'exp');
@@ -571,6 +570,9 @@ if (isset($argc) && $argc > 1) {
                 case '--html':
                     $html_file = fopen($argv[++$i], 'wt');
                     $html_output = is_resource($html_file);
+                    break;
+                case '--color':
+                    $output_color = true;
                     break;
                 case '--version':
                     echo '$Revision: 293036 $' . "\n";
@@ -2329,9 +2331,27 @@ function show_test($test_idx, $shortname)
 
 function show_result($result, $tested, $tested_file, $extra = '', $temp_filenames = null)
 {
-    global $html_output, $html_file, $temp_target, $temp_urlbase;
+    global $html_output, $html_file, $temp_target, $temp_urlbase, $output_color;
 
-    echo "$result $tested [$tested_file] $extra\n";
+    if ($output_color)
+    {
+        if (strcasecmp($result, 'FAIL') == 0)
+        {
+            echo "\033[1;31m$result $tested [$tested_file] $extra\033[0m\n";
+        }
+        else if (strcasecmp($result, 'SKIP') == 0)
+        {
+            echo "\033[35m$result $tested [$tested_file] $extra\033[0m\n";
+        }
+        else
+        {
+            echo "$result $tested [$tested_file] $extra\n";
+        }
+    }
+    else
+    {
+        echo "$result $tested [$tested_file] $extra\n";
+    }
 
     if ($html_output) {
 

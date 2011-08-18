@@ -7,79 +7,104 @@ $table = 'hstesttbl';
 
 
 //GET
-$hs = new HandlerSocket($host, $port);
-if (!($hs->openIndex(1, $dbname, $table, HandlerSocket::PRIMARY, 'k,v')))
+try
 {
-    echo __LINE__, ':', $hs->getError(), ':', PHP_EOL;
+    $hs = new HandlerSocket($host, $port);
+    $index = $hs->createIndex(1, $dbname, $table, HandlerSocket::PRIMARY, 'k,v');
+}
+catch (HandlerSocketException $exception)
+{
+    var_dump($exception->getMessage());
     die();
 }
 
-$retval = $hs->executeSingle(1, '=', array('k1'), 1, 0);
+$retval = $index->find(array('=' => array('k1')));
 
 var_dump($retval);
 
-$retval = $hs->executeMulti(
-    array(array(1, '=', array('k1'), 1, 0),
-          array(1, '=', array('k2'), 1, 0)));
+
+$retval = $index->find(array('=' => array('k2')), 1, 0);
 
 var_dump($retval);
 
+$retval = $index->multi(
+    array(array('find' => array(array('=' => array('k1')), 1, 0)),
+          array('find' => array(array('=' => array('k2'))))));
+
+var_dump($retval);
+
+unset($index);
 unset($hs);
 
 
 //UPDATE
-$hs = new HandlerSocket($host, $port_wr);
-if (!($hs->openIndex(2, $dbname, $table, '', 'v')))
+try
 {
-    echo __LINE__, ':', $hs->getError(), ':', PHP_EOL;
+    $hs = new HandlerSocket($host, $port_wr);
+    $index = $hs->createIndex(2, $dbname, $table, '', 'v');
+}
+catch (HandlerSocketException $exception)
+{
+    var_dump($exception->getMessage());
     die();
 }
 
-if ($hs->executeUpdate(2, '=', array('k1'), array('V1'), 1, 0) === false)
+if ($index->update(
+        array('U' => array('V1')),
+        array('=' => array('k1'))) === false)
 {
-    echo __LINE__, ':', $hs->getError(), ':', PHP_EOL;
+    echo __LINE__, ':', $index->getError(), ':', PHP_EOL;
     die();
 }
 
+unset($index);
 unset($hs);
 
 
 //INSERT
-$hs = new HandlerSocket($host, $port_wr);
-if (!($hs->openIndex(3, $dbname, $table, '', 'k,v')))
+try
 {
-    echo __LINE__, ':', $hs->getError(), ':', PHP_EOL;
+    $hs = new HandlerSocket($host, $port_wr);
+    $index = $hs->createIndex(3, $dbname, $table, '', 'k,v');
+}
+catch (HandlerSocketException $exception)
+{
+    var_dump($exception->getMessage());
     die();
 }
 
-if ($hs->executeInsert(3, array('k2', 'v2')) === false)
+if ($index->insert('k2', 'v2') === false)
 {
-    echo __LINE__, ':', $hs->getError(), ':', PHP_EOL;
+    echo __LINE__, ':', $index->getError(), ':', PHP_EOL;
 }
 
-if ($hs->executeInsert(3, array('k3', 'v3')) === false)
+if ($index->insert('k3', 'v3') === false)
 {
-    echo __LINE__, ':', $hs->getError(), ':', PHP_EOL;
+    echo __LINE__, ':', $index->getError(), ':', PHP_EOL;
 }
-if ($hs->executeInsert(3, array('k4', 'v4')) === false)
+if ($index->insert('k4', 'v4') === false)
 {
-    echo __LINE__, ':', $hs->getError(), ':', PHP_EOL;
+    echo __LINE__, ':', $index->getError(), ':', PHP_EOL;
 }
 
+unset($index);
 unset($hs);
 
 
 //DELETE
-$hs = new HandlerSocket($host, $port_wr);
-if (!($hs->openIndex(4, $dbname, $table, '', '')))
+try
 {
-    echo __LINE__, ':', $hs->getError(), ':', PHP_EOL;
+    $hs = new HandlerSocket($host, $port_wr);
+    $index = $hs->createIndex(4, $dbname, $table, '', '');
+}
+catch (HandlerSocketException $exception)
+{
+    var_dump($exception->getMessage());
     die();
 }
 
-if (!($hs->executeDelete(4, '=', array('k2'))))
+if (!($index->remove(array('=' => array('k2')))))
 {
-    echo __LINE__, ':', $hs->getError(), ':', PHP_EOL;
+    echo __LINE__, ':', $index->getError(), ':', PHP_EOL;
     die();
 }
-
