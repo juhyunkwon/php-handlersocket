@@ -1,0 +1,21 @@
+#labels Featured
+= Handlersocket::ExecuteInsert =
+
+Handlersocket::ExecuteInsert - Insert
+
+= Description =
+
+{{{
+public mixed HandlerSocket::executeInsert( long $id, array $field )
+}}}
+
+= Parameters =
+== id ==
+|| _long_ || id ||
+
+== field ==
+|| _array_ || ||
+
+= Return Values =
+
+Returns the results.
