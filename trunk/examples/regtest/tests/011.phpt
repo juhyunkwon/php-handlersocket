@@ -136,7 +136,7 @@ function _dump($data = array())
 {
     foreach ($data as $value)
     {
-        foreach ($value as $key => $val)
+        foreach ((array)$value as $key => $val)
         {
             echo '[', $key, ']';
             if (is_array($val))

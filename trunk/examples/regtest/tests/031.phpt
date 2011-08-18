@@ -1,5 +1,5 @@
 --TEST--
-multiple modify requests
+HandlerSocketIndex: multiple modify requests
 --SKIPIF--
 --FILE--
 <?php
@@ -41,40 +41,44 @@ for ($i = 0; $i < $tablesize; $i++)
     $valmap[$k] = $v;
 }
 
-
-$hs = new HandlerSocket(MYSQL_HOST, MYSQL_HANDLERSOCKET_PORT_WR);
-if (!($hs->openIndex(1, MYSQL_DBNAME, $table, '', 'k,v')))
+try
 {
+    $hs = new HandlerSocket(MYSQL_HOST, MYSQL_HANDLERSOCKET_PORT_WR);
+    $index = $hs->createIndex(1, MYSQL_DBNAME, $table, '', 'k,v');
+}
+catch (HandlerSocketException $exception)
+{
+    echo $exception->getMessage(), PHP_EOL;
     die();
 }
 
-
 echo 'DEL', PHP_EOL;
-$retval = $hs->executeMulti(
+$retval = $index->multi(
     array(
-        array(1, '=', array('k5'), 1, 0, 'D'),
-        array(1, '>=', array('k5'), 2, 0)
-        ));
+        array('remove', array('=' => 'k5'), 1, 0),
+        array('find', array('>=' => 'k5'), 2, 0)
+    ));
 _dump($retval);
 
+
 echo 'DELINS', PHP_EOL;
-$retval = $hs->executeMulti(
+$retval = $index->multi(
     array(
-        array(1, '>=', array('k6'), 3, 0),
-        array(1, '=', array('k60'), 1, 0, 'D'),
-        array(1, '+', array('k60', 'INS')),
-        array(1, '>=', array('k6'), 3, 0)
-        ));
+        array('find', array('>=' => 'k6'), 3, 0),
+        array('remove', array('=' => 'k60'), 1, 0),
+        array('insert', 'k60', 'INS'),
+        array('find', array('>=' => 'k6'), 3, 0)
+    ));
 _dump($retval);
 
 
 echo 'DELUPUP', PHP_EOL;
-$retval = $hs->executeMulti(
+$retval = $index->multi(
     array(
-        array(1, '>=', array('k7'), 3, 0),
-        array(1, '=', array('k70'), 1, 0, 'U', array('k70', 'UP')),
-        array(1, '>=', array('k7'), 3, 0)
-        ));
+        array('find', array('>=' => 'k7'), 3, 0),
+        array('update', array('=' => 'k70'), array('U' => array('k70', 'UP')), 1, 0),
+        array('find', array('>=' => 'k7'), 3, 0)
+    ));
 _dump($retval);
 
 mysql_close($mysql);
@@ -122,6 +126,7 @@ function _dump($data = array())
         }
     }
 }
+
 --EXPECT--
 DEL
 [0][1]

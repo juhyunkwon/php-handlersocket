@@ -1,5 +1,5 @@
 --TEST--
-auto_increment
+HandlerSocketIndex: auto_increment
 --SKIPIF--
 --FILE--
 <?php
@@ -42,10 +42,14 @@ for ($i = 0; $i < $tablesize; $i++)
     }
 }
 
-
-$hs = new HandlerSocket(MYSQL_HOST, MYSQL_HANDLERSOCKET_PORT_WR);
-if (!($hs->openIndex(1, MYSQL_DBNAME, $table, '', 'k,v1,v2')))
+try
 {
+    $hs = new HandlerSocket(MYSQL_HOST, MYSQL_HANDLERSOCKET_PORT_WR);
+    $index = $hs->createIndex(1, MYSQL_DBNAME, $table, '', 'k,v1,v2');
+}
+catch (HandlerSocketException $exception)
+{
+    echo $exception->getMessage(), PHP_EOL;
     die();
 }
 
@@ -56,7 +60,7 @@ for ($i = 0; $i < $tablesize; $i++)
     $v1 = 'v1hs_' . $i;
     $v2 = 'v2hs_' . $i;
 
-    $retval = $hs->executeInsert(1, array($k, $v1, $v2));
+    $retval = $index->insert($k, $v1, $v2);
     if ($retval)
     {
         echo $retval, ' ', $v1, PHP_EOL;
@@ -75,22 +79,18 @@ for ($i = 0; $i < $tablesize; $i++)
     $v1 = 'v1hs3_' . $i;
     $v2 = 'v2hs3_' . $i;
 
-    $retval = $hs->executeMulti(
+    $retval = $index->multi(
         array(
-            array(1, '+', array($k, $v1, $v2)),
-            array(1, '+', array($k, $v1, $v2)),
-            array(1, '+', array($k, $v1, $v2)),
+            array('insert', $k, $v1, $v2),
+            array('insert', $k, $v1, $v2),
+            array('insert', $k, $v1, $v2)
         )
     );
     if ($retval)
     {
         for ($j = 0; $j < 3; $j++)
         {
-            if (isset($retval[$j], $retval[$j][0], $retval[$j][0][0]))
-            {
-                echo $retval[$j][0][0], ' ', $v1, PHP_EOL;
-            }
-            else if (isset($retval[$j]))
+            if (isset($retval[$j]))
             {
                 echo $retval[$j], ' ', $v1, PHP_EOL;
             }

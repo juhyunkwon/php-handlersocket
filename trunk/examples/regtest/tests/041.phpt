@@ -1,9 +1,8 @@
 --TEST--
-filters
+HandlerSocketIndex: filters
 --SKIPIF--
 --FILE--
 <?php
-
 require_once dirname(__FILE__) . '/../common/config.php';
 
 $numeric_types = array(
@@ -173,17 +172,23 @@ function test_one($type, $length = null, $values = array())
         }
     }
 
-    $hs = new HandlerSocket(MYSQL_HOST, MYSQL_HANDLERSOCKET_PORT_WR);
-    if (!($hs->openIndex(1, MYSQL_DBNAME, $table, '', 'k1,k2,v1,v2', 'v2')))
+    try
     {
+        $hs = new HandlerSocket(MYSQL_HOST, MYSQL_HANDLERSOCKET_PORT_WR);
+        $index = $hs->createIndex(1, MYSQL_DBNAME, $table, '', 'k1,k2,v1,v2',
+                                array('filter' => 'v2'));
+    }
+    catch (HandlerSocketException $exception)
+    {
+        echo $exception->getMessage(), PHP_EOL;
         die();
     }
 
     $minval = $values[0];
 
     // select * ... where (k1, k2) >= ('', $minval)
-    hs_multi($hs, 'FILTER(' . $type . ') NO FILTER',
-             array(array(1, '>=', array('', $minval), 1000, 0)));
+    hs_multi($index, 'FILTER(' . $type . ') NO FILTER',
+             array(array('find', array('>=' => array('', $minval)), 1000, 0)));
 
     foreach ($values as $val)
     {
@@ -204,34 +209,46 @@ function test_one($type, $length = null, $values = array())
         }
 
         // select * ... where (k1, k2) >= ('', $minval) and v2 = $v
-        hs_multi($hs, 'FILTER(' . $type . ') v2 = ' . $vstr,
-                 array(array(1, '>=', array('', $minval), 1000, 0, null, null,
-                             array(array('F', '=', 0, $val)))));
+        hs_multi($index, 'FILTER(' . $type . ') v2 = ' . $vstr,
+                 array(array('find',
+                             array('>=' => array('', $minval)),
+                             1000, 0,
+                             array('filter' => array('=', 'v2', $val)))));
 
         // select * ... where (k1, k2) >= ('', $minval) and v2 != $v
-        hs_multi($hs, 'FILTER(' . $type . ') v2 != ' . $vstr,
-                 array(array(1, '>=', array('', $minval), 1000, 0, null, null,
-                             array(array('F', '!=', 0, $val)))));
+        hs_multi($index, 'FILTER(' . $type . ') v2 != ' . $vstr,
+                 array(array('find',
+                             array('>=' => array('', $minval)),
+                             1000, 0,
+                             array('filter' => array('!=', 'v2', $val)))));
 
         // select * ... where (k1, k2) >= ('', $minval) and v2 >= $v
-        hs_multi($hs, 'FILTER(' . $type . ') v2 >= ' . $vstr,
-                 array(array(1, '>=', array('', $minval), 1000, 0, null, null,
-                             array(array('F', '>=', 0, $val)))));
+        hs_multi($index, 'FILTER(' . $type . ') v2 >= ' . $vstr,
+                 array(array('find',
+                             array('>=' => array('', $minval)),
+                             1000, 0,
+                             array('filter' => array('>=', 'v2', $val)))));
 
         // select * ... where (k1, k2) >= ('', $minval) and v2 < $v
-        hs_multi($hs, 'FILTER(' . $type . ') v2 < ' . $vstr,
-            array(array(1, '>=', array('', $minval), 1000, 0, null, null,
-                        array(array('F', '<', 0, $val)))));
+        hs_multi($index, 'FILTER(' . $type . ') v2 < ' . $vstr,
+                 array(array('find',
+                             array('>=' => array('', $minval)),
+                             1000, 0,
+                             array('filter' => array('<', 'v2', $val)))));
 
         // select * ... where (k1, k2) >= ('', $minval) and v2 > $v
-        hs_multi($hs, 'FILTER(' . $type . ') v2 > ' . $vstr,
-                 array(array(1, '>=', array('', $minval), 1000, 0, null, null,
-                             array(array('F', '>', 0, $val)))));
+        hs_multi($index, 'FILTER(' . $type . ') v2 > ' . $vstr,
+                 array(array('find',
+                             array('>=' => array('', $minval)),
+                             1000, 0,
+                             array('filter' => array('>', 'v2', $val)))));
 
         // select * ... where (k1, k2) >= ('', $minval) and v2 <= $v
-        hs_multi($hs, 'FILTER(' . $type . ') v2 <= ' . $vstr,
-                 array(array(1, '>=', array('', $minval), 1000, 0, null, null,
-                             array(array('F', '<=', 0, $val)))));
+        hs_multi($index, 'FILTER(' . $type . ') v2 <= ' . $vstr,
+                 array(array('find',
+                             array('>=' => array('', $minval)),
+                             1000, 0,
+                             array('filter' => array('<=', 'v2', $val)))));
     }
 
     unset($hs);
@@ -239,14 +256,14 @@ function test_one($type, $length = null, $values = array())
     mysql_close($mysql);
 }
 
-function hs_multi($hs, $message, $lines)
+function hs_multi($index, $message, $lines)
 {
     echo $message, PHP_EOL;
 
-    $retval = $hs->executeMulti($lines);
+    $retval = $index->multi($lines);
     if ($retval === false)
     {
-        $errors = $hs->getError();
+        $errors = $index->getError();
         if (is_array($errors))
         {
             echo $errors[0], PHP_EOL;
@@ -262,7 +279,7 @@ function hs_multi($hs, $message, $lines)
     {
         if (!is_array($res))
         {
-            $errors = $hs->getError();
+            $errors = $index->getError();
             if (is_array($errors))
             {
                 echo $errors[0], PHP_EOL;

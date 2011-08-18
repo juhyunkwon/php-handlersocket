@@ -61,9 +61,9 @@ if (!$retval)
 }
 else
 {
-    foreach ($retval as $values)
+    foreach ((array)$retval as $values)
     {
-        foreach ($values as $val)
+        foreach ((array)$values as $val)
         {
             echo $val[0], ' ', $val[1], PHP_EOL;
         }
