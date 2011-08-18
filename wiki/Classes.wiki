@@ -1,5 +1,5 @@
 #summary Classes page.
-#labels Featured
+#labels Deprecated
 
 = The HandlerSocket class methods =
 Version: 0.2.0
