@@ -1,0 +1,36 @@
+#summary Handlersocket::openIndex
+#labels Featured
+
+= Handlersocket::openIndex =
+
+Handlersocket::openIndex - Open a database index.
+
+= Description =
+
+{{{
+public bool HandlerSocket::openIndex( long $id, string $db, string $table, string $index, string $field [, array $filter = array() ] )
+}}}
+
+= Parameters =
+
+== id ==
+|| _long_ || id ||
+
+== db ==
+|| _string_ || database name ||
+
+== table ==
+|| _string_ || table name ||
+
+== index ==
+|| _string_ || index name ||
+
+== field ==
+|| _string_ || field lists ||
+
+== filter ==
+|| _array_ || filter lists ||
+
+= Return Values =
+
+Returns if the open was successfully.
