@@ -1,0 +1,28 @@
+#summary Handlersocket::__construct
+#labels Featured
+
+= Handlersocket::__construct =
+
+Handlersocket::__construct - Creates a new conection objects.
+
+= Description =
+
+{{{
+HandlerSocket::__construct( string $host, string $port [, array $options ] )
+}}}
+
+= Parameters =
+
+== host ==
+|| _string_ || host name ||
+
+== port ==
+|| _string_ || port number ||
+
+= Return Values =
+
+Returns the connection object.
+
+= Errors/Exceptions =
+
+Throws HandlerSocetException if the connection is invalid. 
