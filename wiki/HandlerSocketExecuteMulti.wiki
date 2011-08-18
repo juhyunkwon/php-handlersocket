@@ -1,0 +1,21 @@
+#summary Handlersocket::executeMulti
+#labels Featured
+
+= Handlersocket::executeMulti =
+
+Handlersocket::executeMulti - Execute
+
+= Description =
+
+{{{
+public array HandlerSocket::executeMulti( array $args )
+}}}
+
+= Parameters =
+
+== args ==
+|| _array_ || ||
+
+= Return Values =
+
+Returns the results.
