@@ -1,0 +1,41 @@
+#summary Handlersocket::ExecuteDelete
+#labels Featured
+
+= Handlersocket::ExecuteDelete =
+
+Handlersocket::ExecuteDelete - Delete
+
+= Description =
+
+{{{
+public mixed HandlerSocket::executeDelete( long $id, string $operate, array $criteria [, long $limit = 1, long $offset = 0, array $filters = array(), long $in_key = -1, array $in_values = array() ] )
+}}}
+
+= Parameters =
+== id ==
+|| _long_ || id ||
+
+== operate ==
+|| _array_ || ||
+
+== criteria ==
+|| _array_ || ||
+
+== limit ==
+|| _long_ || ||
+
+== offset ==
+|| _long_ || ||
+
+== filters ==
+|| _array_ || ||
+
+== in_key ==
+|| _long_ || ||
+
+== in_values ==
+|| _array_ || ||
+
+= Return Values =
+
+Returns the results.
