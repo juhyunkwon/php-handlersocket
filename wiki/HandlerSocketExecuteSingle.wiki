@@ -1,0 +1,47 @@
+#summary Handlersocket::executeSingle
+
+= Handlersocket::executeSingle =
+
+HandlerSocket::executeSingle - Execute
+
+= Description =
+
+{{{
+public mixed HandlerSocket::executeSingle( long $id, string $operate, array $criteria [, long $limit = 1, long $offset = 0, string $update = null, array $values = array(), array $filters = array(), long $in_key = -1, array $in_values = array() ] )
+}}}
+
+= Parameters =
+
+== id ==
+|| _long_ || id ||
+
+== operate ==
+|| _array_ || ||
+
+== criteria ==
+|| _array_ || ||
+
+== limit ==
+|| _long_ || ||
+
+== offset ==
+|| _long_ || ||
+
+== update ==
+|| _string_ || ||
+
+== values ==
+|| _array_ || ||
+
+== filters ==
+|| _array_ || ||
+
+== in_key ==
+|| _long_ || ||
+
+== in_values ==
+|| _array_ || ||
+
+= Return Values =
+
+Returns the results.
