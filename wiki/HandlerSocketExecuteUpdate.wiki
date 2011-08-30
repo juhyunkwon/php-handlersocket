@@ -41,7 +41,7 @@ This method is the same as the 'U' argument to specify a fifth HandlerSocket::ex
 == in_values ==
 || _array_ || in values ||
 
-Details of the argument is a reference HandlerSocket::executeSingle.
+Details of the argument is a reference [http://code.google.com/p/php-handlersocket/wiki/HandlerSocketExecuteSingle HandlerSocket::executeSingle].
 
 = Return Values =
 
