@@ -14,7 +14,7 @@ public array HandlerSocket::executeMulti( array $args )
 = Parameters =
 
 == args ==
-|| _array_ || array of Handlersocket::executeSingle parameter ||
+|| _array_ || array of [http://code.google.com/p/php-handlersocket/wiki/HandlerSocketExecuteSingle Handlersocket::executeSingle] parameter ||
 
 = Return Values =
 
