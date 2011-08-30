@@ -1,4 +1,6 @@
+#summary Handlersocket::getError
 #labels Featured
+
 = Handlersocket::getError =
 
 Handlersocket::getError - Get a last error message
@@ -12,7 +14,6 @@ public mixed HandlerSocket::getError( void )
 = Parameters =
 
 This function has no parameters.
-
 
 = Return Values =
 

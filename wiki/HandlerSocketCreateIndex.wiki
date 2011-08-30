@@ -1,4 +1,6 @@
+#summary Handlersocket::createIndex
 #labels Featured
+
 = Handlersocket::createIndex =
 
 Handlersocket::createIndex - Creates a new index objects
@@ -27,7 +29,10 @@ public HandlerSocketIndex HandlerSocket::createIndex( long $id, string $db, stri
 || _string_ or _array_ || field lists ||
 
 == options ==
-|| _array_ || ||
+|| _array_ || options ||
+
+  * filter
+  filter lists.
 
 = Return Values =
 
@@ -36,3 +41,30 @@ Returns the HandlerSocketIndex object.
 = Errors/Exceptions =
 
 Throws HandlerSocetException if the create is invalid.
+
+= Examples =
+
+{{{
+<?php
+
+try {
+  $hs = new Handlersocker('localhost', 9999);
+
+  $index = $hs->createIndex(1, 'db', 'table', 'PRIMARY', 'k,v');
+
+} catch (HandlerSocketException $e) {
+  die($e->getMessage());
+}
+
+?>
+}}}
+
+== filter setting  ==
+
+{{{
+<?php
+
+$index = $hs->createIndex(1, 'db', 'table', 'PRIMARY', array('k', 'v'), array('filter' => array('f1', 'f2')));
+
+?>
+}}}

@@ -19,10 +19,45 @@ HandlerSocket::__construct( string $host, string $port [, array $options ] )
 == port ==
 || _string_ || port number ||
 
+== options ==
+|| _array_ || options ||
+
+  * timeout
+  connection timeout seconds.
+
+
 = Return Values =
 
 Returns the connection object.
 
 = Errors/Exceptions =
 
-Throws HandlerSocetException if the connection is invalid. 
+Throws HandletSocketException if the connection is invalid. 
+
+= Examples =
+
+{{{
+<?php
+
+try {
+  $hs = new Handlersocker('localhost', 9999);
+} catch (HandlerSocketException $e) {
+  die($e->getMessage());
+}
+
+?>
+}}}
+
+== timeout setting ==
+
+{{{
+<?php
+
+try {
+  $hs = new Handlersocker('localhost', 9999, array('timeout' => 30));
+} catch (HandlerSocketException $e) {
+  die($e->getMessage());
+}
+
+?>
+}}}

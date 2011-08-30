@@ -22,3 +22,15 @@ public bool HandlerSocket::auth( string $key, [, string $type ] )
 = Return Values =
 
 Returns if the authenticate was successfully.
+
+= Examples =
+
+{{{
+<?php
+
+if (!$hs->auth('pass')) {
+  die('Fault auth');
+}
+
+?>
+}}}
