@@ -19,7 +19,7 @@ public mixed HandlerSocket::executeSingle( long $id, string $operate, array $cri
 || _string_ || comparison operator ||
 
   * supported
-  =, <, <=, >, >=
+  '=', '<', '<=', '>', '>='
 
 == criteria ==
 || _array_ || comparison values ||
