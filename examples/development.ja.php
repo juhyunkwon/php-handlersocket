@@ -45,7 +45,7 @@ function status_ok($proc, $msg = 'OK')
     }
 }
 
-/* Connection information */
+/* 接続情報 */
 $host = 'localhost';
 $port = 9999;
 //$port = '9999';
@@ -54,33 +54,33 @@ $table = 'hstesttbl';
 $auth = 'pass';
 
 
-// HandlerSocket: connection
+//HandlerSocket: 接続
 try
 {
-    //Success:
+    //成功:
     $hs = new HandlerSocket(
-        $host, // host
-        $port  // port
+        $host, //ホスト名
+        $port  //ポート番号
     );
-    //$hs = new HandlerSocket($host, $port, null);  //null option
+    //$hs = new HandlerSocket($host, $port, null);    //null オプション
     //$hs = new HandlerSocket(null, $port, array('host' => $host));
     //$hs = new HandlerSocket($host, null, array('port' => $port));
     //$hs = new HandlerSocket(null, null, array('host' => $host, 'port' => $port));
 
-    //Failure:
-    //$hs = new HandlerSocket();                    //no arguments
-    //$hs = new HandlerSocket($host);               //pot without specifying
-    //$hs = new HandlerSocket('', $port);           //host empty
-    //$hs = new HandlerSocket('testserver', $port); //Invalid host
-    //$hs = new HandlerSocket($host,'');            //port empty
-    //$hs = new HandlerSocket($host, 8888);         //port disable
-    //$hs = new HandlerSocket(null, $port);         //null host
-    //$hs = new HandlerSocket($host, null);         //null port
+    //失敗:
+    //$hs = new HandlerSocket();                    //引数なし
+    //$hs = new HandlerSocket($host);               //ポート指定なし
+    //$hs = new HandlerSocket('', $port);           //空ホスト
+    //$hs = new HandlerSocket('testserver', $port); //無効ホスト
+    //$hs = new HandlerSocket($host, '');           //空ポート
+    //$hs = new HandlerSocket($host, 8888);         //無効ポート
+    //$hs = new HandlerSocket(null, $port);         //null ホスト
+    //$hs = new HandlerSocket($host, null);         //null ポート
     //$hs = new HandlerSocket(null, null);          //null
 }
 catch (HandlerSocketException $exception)
 {
-    //When an error occurs HandlerSocketException
+    //エラー時は HandlerSocketException が発生
     echo $exception->getMessage(), PHP_EOL;
     die();
 }
@@ -88,78 +88,78 @@ catch (HandlerSocketException $exception)
 status_ok('new HandlerSocket', $hs);
 
 
-//Authentication
-//Success:
+//認証
+//成功:
 $ret = $hs->auth($auth);
 //$ret = $hs->auth($auth, '1');
 //$ret = $hs->auth($auth, 'hoge');
 
-//Failure:
-//$ret = $hs->auth(); //no arguments
-//$ret = $hs->auth(''); //empty
+//失敗:
+//$ret = $hs->auth(); //引数なし
+//$ret = $hs->auth(''); //空
 //$ret = $hs->auth(null); //NULL
-//$ret = $hs->auth(array($auth)); //array
+//$ret = $hs->auth(array($auth)); //配列
 
 status_ok('HandlerSocket::auth', $ret);
 
 
-//Expansion index
-//Success:
+//インデックス展開
+//成功:
 $id = 1;
 $key = 'PRIMARY';
 //$key = 'i1';
-//$key = ''; //empty is the same as PRIMARY
-//$key = null; //the same as PRIMARY may be NULL
+//$key = ''; //空は PRIMARY と同じ
+//$key = null; //NULLも PRIMARY と同じ
 $field = 'k,v';
-//$field = array('k', 'v');
-//$field =''; //can not be retrieved nothing
-//$field = null; //can not be retrieved nothing
+//$field = array('k','v');
+//$field = ''; //なにも取得できない
+//$field = null; //なにも取得できない
 //$filter = 'f1,f2';
-//$filter = array('f1', 'f2');
-//$filter =''; //what in this case?
-$filter = null; //what In this case?
+//$filter = array('f1','f2');
+//$filter = ''; //--> この場合どーなるの ?
+$filter = null; //--> この場合どーなるの ?
 
 $ret = $hs->openIndex(
-    $id,     //number index
-    $dbname, //name database
-    $table,  //name table
-    $key,    //name index
-    $field,  //field list (array or comma-delimited text)
-    $filter  //filter the field list (array or comma-delimited text)
+    $id,     //インデックス番号
+    $dbname, //データベース名
+    $table,  //テーブル名
+    $key,    //インデックス名
+    $field,  //フィールドリスト (カンマ区切りテキスト or 配列)
+    $filter  //フィルターフィールドリスト (カンマ区切りテキスト or 配列)
 );
 
 /*
-//Failure:
+//失敗:
 $key = 'PRIMARY';
 $field = 'k,v';
 $filter = 'f1,f2';
-//$ret = $hs->openIndex(); //no arguments
-//$ret = $hs->openIndex($id); //DB, Table, Key, No Field
-//$ret = $hs->openIndex($id, $dbname); //Table, Key, No Field
-//$ret = $hs->openIndex($id, $dbname, $table); //Key, No Field
-//$ret = $hs->openIndex($id, $dbname, $table, $key); //without Field
-//$ret = $hs->openIndex('', $dbname, $table, $key, $field); //ID empty
-//$ret = $hs->openIndex('a', $dbname, $table, $key, $field); //ID string
-//$ret = $hs->openIndex($id,'', $table, $key, $field); //DB empty
-//$ret = $hs->openIndex($id, 'hoge', $table, $key, $field); //DB Invalid
+//$ret = $hs->openIndex(); //引数なし
+//$ret = $hs->openIndex($id); //DB, Table, Key, Field なし
+//$ret = $hs->openIndex($id, $dbname); //Table, Key, Field なし
+//$ret = $hs->openIndex($id, $dbname, $table); //Key, Field なし
+//$ret = $hs->openIndex($id, $dbname, $table, $key); //Field なし
+//$ret = $hs->openIndex('', $dbname, $table, $key, $field); //空 ID
+//$ret = $hs->openIndex('a', $dbname, $table, $key, $field); //文字列 ID
+//$ret = $hs->openIndex($id, '', $table, $key, $field); //空 DB
+//$ret = $hs->openIndex($id, 'hoge', $table, $key, $field); //無効 DB
 //$ret = $hs->openIndex($id, null, $table, $key, $field); //NULL DB
-//$ret = $hs->openIndex($id, array ($db), $table, $key, $field); //DB array
-//$ret = $hs->openIndex($id, $dbname,'', $key, $field); //Table empty
-//$ret = $hs->openIndex($id, $dbname, 'hoge', $key, $field); //Table Invalid
+//$ret = $hs->openIndex($id, array($db), $table, $key, $field); //配列 DB
+//$ret = $hs->openIndex($id, $dbname, '', $key, $field); //空 Table
+//$ret = $hs->openIndex($id, $dbname, 'hoge', $key, $field); //無効 Table
 //$ret = $hs->openIndex($id, $dbname, null, $key, $field); //NULL Table
-//$ret = $hs->openIndex($id, $dbname, array ($table), $key, $field); //Table array
-//$ret = $hs->openIndex($id, $dbname, $table, 'hoge', $field); //Key Invalid
-//$ret = $hs->openIndex($id, $dbname, $table, array ($key), $field); //Key array
-//$ret = $hs->openIndex($id, $dbname, $table, $key, 'hoge'); Field //Invalid
-//$ret = $hs->openIndex($id, $dbname, $table, $key, $field, 'hoge'); //Filter Invalid
-//$ret = $hs->openIndex($id, $dbname, $table, $key, $field, array ('hoge')); //Filter array Invalid
+//$ret = $hs->openIndex($id, $dbname, array($table), $key, $field); //配列 Table
+//$ret = $hs->openIndex($id, $dbname, $table, 'hoge', $field); //無効 Key
+//$ret = $hs->openIndex($id, $dbname, $table, array($key), $field); //配列 Key
+//$ret = $hs->openIndex($id, $dbname, $table, $key, 'hoge'); //無効 Field
+//$ret = $hs->openIndex($id, $dbname, $table, $key, $field, 'hoge'); //無効 Filter
+//$ret = $hs->openIndex($id, $dbname, $table, $key, $field, array('hoge')); //無効配列 Filter
 */
 
 status_ok('HandlerSocket::openIndex', $ret);
 
 
-//Execute the processing
-//Success:
+//処理の実行
+//成功:
 //$ret = $hs->executeSingle($id, '>', array('k1'));
 //$ret = $hs->executeSingle($id, '>', 'k1');
 //[SQL] => SELECT k, v FROM hstesttbl WHERE k = 'k1' LIMIT 0, 1
@@ -187,26 +187,26 @@ status_ok('HandlerSocket::openIndex', $ret);
 //$ret = $hs->executeSingle($id, '=', array('k1'), 1, 0, 'U?', array('k1', 'V1'));
 //[SQL] => SELECT k, v FROM hstesttbl WHERE k = 'k1' LIMIT 0, 1; UPDATE hstesttbl SET k = 'k1', v = 'V1' WHERE k = 'k1' LIMIT 0, 1
 
-//Failure:
-//$ret = $hs->executeSingle(); //no arguments
-//$ret = $hs->executeSingle($id); //comparison operator, no comparison value
-//$ret = $hs->executeSingle($id, '>'); //no comparison value
-//$ret = $hs->executeSingle(10, '>', array('k1')); //ID invalid connection
-//$ret = $hs->executeSingle($id, '>>', array('k1')); //invalid comparison operator
-//$ret = $hs->executeSingle($id, '>', array('k1'), 'a'); //limit value Invalid
-//$ret = $hs->executeSingle($id, '>', array('k1'), 1, 'a'); //invalid offset value
-//$ret = $hs->executeSingle($id, '>', array('k1'), 1, 'a'); //invalid offset value
-//$ret = $hs->executeSingle($id, '>', array('k1'), 1, 0, 'u'); //update operator Invalid
+//失敗:
+//$ret = $hs->executeSingle(); //引数なし
+//$ret = $hs->executeSingle($id); //比較演算子, 比較値なし
+//$ret = $hs->executeSingle($id, '>'); //比較値なし
+//$ret = $hs->executeSingle(10, '>', array('k1')); //無効接続 ID
+//$ret = $hs->executeSingle($id, '>>', array('k1')); //無効比較演算子
+//$ret = $hs->executeSingle($id, '>', array('k1'), 'a'); //無効リミット値
+//$ret = $hs->executeSingle($id, '>', array('k1'), 1, 'a'); //無効オフセット値
+//$ret = $hs->executeSingle($id, '>', array('k1'), 1, 'a'); //無効オフセット値
+//$ret = $hs->executeSingle($id, '>', array('k1'), 1, 0, 'u'); //無効更新演算子
 
-//Ignore: ignore filter
-//$ret = $hs->executeSingle($id, '>', array('k1'), 1, 0, null, null, array()); //filter empty
-//$ret = $hs->executeSingle($id, '>', array('k1'), 1, 0, null, null, array('F', '> =', 0)); // Disable filter
+//無視:フィルター無視
+//$ret = $hs->executeSingle($id, '>', array('k1'), 1, 0, null, null, array()); //空フィルター
+//$ret = $hs->executeSingle($id, '>', array('k1'), 1, 0, null, null, array('F', '>=', 0)); //無効フィルター
 
 status_ok('HandlerSocket::executeSingle', $ret);
 
 
-//Execution of multiple processing
-//Success:
+//複数処理の実行
+//成功:
 $ret = $hs->executeMulti(
     array(
         array($id, '=', 'k10'),
@@ -218,60 +218,60 @@ $ret = $hs->executeMulti(
         array($id, '=', array('k10'), 1, 0)
     ));
 
-//Failure:
-//$ret = $hs->executeMulti(); //no arguments
-//$ret = $hs->executeMulti(''); //empty
-//$ret = $hs->executeMulti(array()); //an empty array
-//$ret = $hs->executeMulti(array('')); //an empty array
+//失敗:
+//$ret = $hs->executeMulti(); //引数なし
+//$ret = $hs->executeMulti(''); //空
+//$ret = $hs->executeMulti(array()); //空配列
+//$ret = $hs->executeMulti(array('')); //空配列
 
 status_ok('HandlerSocket::executeMulti', $ret);
 
 
-//Execute the update process
+//更新処理の実行
 $hs->openIndex(2, $dbname, $table, $key, 'k,v,f1,f2');
 $hs->executeSingle(2, '+', array('k20', 'v20', 'f20', 'f220'));
 
-//Success:
+//成功:
 $ret = $hs->executeUpdate(2, '=', array('k20'), array('k20', 'V20', 'F20', 'F220'));
 //$ret = $hs->executeUpdate(2, '=', array('k20'), array('k20', 'VV20', 'FF20'));
 //$ret = $hs->executeUpdate(2, '=', array('k20'), array('k20', 'VV20'));
 //$ret = $hs->executeUpdate(2, '=', array('k20'), 'k20');
-//$ret = $hs->executeUpdate(2, '=', array('hoge'), array('k20', 'V20', 'F20', 'F220')) //No target
+//$ret = $hs->executeUpdate(2, '=', array('hoge'), array('k20', 'V20', 'F20', 'F220')); //対象なし
 
-//Failure:
-//$ret = $hs->executeUpdate(); //no arguments
+//失敗:
+//$ret = $hs->executeUpdate(); //引数なし
 
 status_ok('HandlerSocket::executeUpdate', $ret);
 
 
-//Execute the delete operation
-//Success:
+//削除処理の実行
+//成功:
 $ret = $hs->executeDelete($id, '=', array('k20'));
 //$ret = $hs->executeDelete($id, '=', 'k20');
-//$ret = $hs->executeDelete($id, '=', 'hoge'); // No target
+//$ret = $hs->executeDelete($id, '=', 'hoge'); //対象なし
 
-//Failure:
-//$ret = $hs->executeDelete(); //no arguments
+//失敗:
+//$ret = $hs->executeDelete(); //引数なし
 
 status_ok('HandlerSocket::executeDelete', $ret);
 
 
-//Execute the insert operation
+//挿入処理の実行
 $hs->openIndex(2, $dbname, $table, $key, 'k,v,f1,f2');
 
 $ret = $hs->executeInsert(2, array('K30', 'V30', 'F130', 'F230'));
 //$ret = $hs->executeInsert(2, array('K30', 'V30', 'F130', null, 'F230'));
 
-//Failure:
-//$ret = $hs->executeInsert(); //no arguments
-//$ret = $hs->executeInsert(2, array()); //empty
+//失敗:
+//$ret = $hs->executeInsert(); //引数なし
+//$ret = $hs->executeInsert(2, array()); //空
 
 status_ok('HandlerSocket::executeInsert', $ret);
 
 $hs->executeDelete($id, '=', array('K30'));
 
 
-//Create object HandlerSocketIndex
+//HandlerSocketIndex オブジェクトの作成
 $id = 3;
 $key = 'PRIMARY';
 //$field = 'k,v';
@@ -281,55 +281,55 @@ $filter = array('f1', 'f2');
 
 try
 {
-    //Success:
+    //成功:
     $index = $hs->createIndex(
-        $id,     //number index
-        $dbname, //name database
-        $table,  //name table
-        $key,    //name index
-        $field,  //field list (array or comma-delimited text)
+        $id,     //インデックス番号
+        $dbname, //データベース名
+        $table,  //テーブル名
+        $key,    //インデックス名
+        $field,  //フィールドリスト (カンマ区切りテキスト or 配列)
         array('filter' => $filter)
     );
 
     /*
     $index = new HandlerSocketIndex(
-        $hs,     //HandlerSocket object
-        $id,     //number index
-        $dbname, //name database
-        $table,  //name table
-        $key,    //name index
-        $field,  // field list (array or comma-delimited text)
+        $hs,     //HandlerSocket オブジェクト
+        $id,       //index 番号
+        $dbname, //データベース名
+        $table,  //テーブル名
+        $key,    //インデックス名
+        $field,  //フィールドリスト (カンマ区切りテキスト or 配列)
         array('filter' => $filter)
     );
     */
 
-    //Failure:
-    //$index = $hs->createIndex(); //no arguments
-    //$index = $hs->createIndex($id); // DB, Table, Key, No Field
-    //$index = $hs->createIndex($id, $dbname); // Table, Key, No Field
-    //$index = $hs->createIndex($id, $dbname, $table); // Key, No Field
-    //$index = $hs->createIndex($id, $dbname, $table, $key); //without Field
-    //$index = $hs->createIndex('', $dbname, $table, $key, $field); //ID empty
-    //$index = $hs->creteIndex('a', $dbname, $table, $key, $field); //ID string
-    //$index = $hs->createIndex($id,'', $table, $key, $field); //DB empty
-    //$index = $hs->createIndex($id, 'hoge', $table, $key, $field); //DB Invalid
-    //$index = $hs->createIndex($id, $dbname,'', $key, $field); //Table empty
-    //$index = $hs->createIndex($id, $dbname, 'hoge', $key, $field); //Table Invalid
-    //$index = $hs->createIndex($id, $dbname, $table, 'hoge', $field); //Key Invalid
-    //$index = $hs->createIndex($id, $dbname, $table, $key, 'hoge'); //Field Invalid
+    //失敗:
+    //$index = $hs->createIndex(); //引数なし
+    //$index = $hs->createIndex($id); //DB, Table, Key, Field なし
+    //$index = $hs->createIndex($id, $dbname); //Table, Key, Field なし
+    //$index = $hs->createIndex($id, $dbname, $table); //Key, Field なし
+    //$index = $hs->createIndex($id, $dbname, $table, $key); //Field なし
+    //$index = $hs->createIndex('', $dbname, $table, $key, $field); //空 ID
+    //$index = $hs->creteIndex('a', $dbname, $table, $key, $field); //文字列 ID
+    //$index = $hs->createIndex($id, '', $table, $key, $field); //空 DB
+    //$index = $hs->createIndex($id, 'hoge', $table, $key, $field); //無効 DB
+    //$index = $hs->createIndex($id, $dbname, '', $key, $field); //空 Table
+    //$index = $hs->createIndex($id, $dbname, 'hoge', $key, $field); //無効 Table
+    //$index = $hs->createIndex($id, $dbname, $table, 'hoge', $field); //無効 Key
+    //$index = $hs->createIndex($id, $dbname, $table, $key, 'hoge'); //無効 Field
 
-    //Failure: HandlerSocketIndex
+    //失敗: HandlerSocketIndex
     //class Obj {}
     //$obj = new Obj();
     //$index = new HandlerSocketIndex(
-    //    $obj, object // Invalid
+    //    $obj, //無効オブジェクト
     //    $id, $dbname, $table, $key, $field
     //);
 
 }
 catch (HandlerSocketException $exception)
 {
-    //When an error occurs HandlerSocketException
+    //エラー時は HandlerSocketException が発生
     echo 'Error:', $exception->getMessage(), PHP_EOL;
     die();
 }
@@ -337,28 +337,28 @@ catch (HandlerSocketException $exception)
 status_ok('HandlerSocket::createIndex', $index);
 
 
-//Get the connection number
+//接続番号の取得
 status_ok('HandlerSocketIndex::getId', $index->getId());
 
-//Get the name of the database
+//データベース名の取得
 status_ok('HandlerSocketIndex::getDatabase', $index->getDatabase());
 
-//Get the table name
+//テーブル名の取得
 status_ok('HandlerSocketIndex::getTable', $index->getTable());
 
-//Get the field list (array)
+//フィールドリストの取得 (配列)
 status_ok('HandlerSocketIndex::getField', $index->getField());
 
-//Get the filter list (array)
+//フィルターリストの取得 (配列)
 status_ok('HandlerSocketIndex::getFilter', $index->getFilter());
 
-//Get the effective operator
+//有効演算子の取得
 status_ok('HandlerSocketIndex::getOperator', $index->getOperator());
 
 
 
-//Get the data
-//Success:
+//データを取得する
+//成功:
 status_ok('HandlerSocketIndex:find', $index->find('k2'));
 status_ok('HandlerSocketIndex:find', $index->find(array('k2')));
 status_ok('HandlerSocketIndex:find', $index->find(array('=' => 'k2')));
@@ -391,7 +391,7 @@ $ret = $index->find(
 status_ok('HandlerSocketIndex:find', $ret);
 //[SQL] => SELECT k, v FROM hstesttbl WHERE k > '' AND f1 = 'f2' LIMIT 10
 
-//Failure:
+//失敗:
 //$ret = $index->find(array('>>' => 'k3'));
 //try
 //{
@@ -403,61 +403,61 @@ status_ok('HandlerSocketIndex:find', $ret);
 //    echo $exception->getMessage(), PHP_EOL;
 //}
 
-//$ret = $index->find(); //no arguments
-//$ret = $index->find(array('>>' => 'k3')); //rogue operator
-//$ret = $index->find(array('=' => array('k3', 'k2'))); //array Invalid
-//$ret = $index->find('', 'a'); //limit value Invalid
-//$ret = $index->find('', 2, 'a'); //offset value Invalid
+//$ret = $index->find(); //引数なし
+//$ret = $index->find(array('>>' => 'k3')); //不正演算子
+//$ret = $index->find(array('=' => array('k3', 'k2'))); //無効配列
+//$ret = $index->find('', 'a'); //無効リミット値
+//$ret = $index->find('', 2, 'a'); //無効オフセット値
 
-//Ignore:
+//無視:
 //$ret = $index->find(
 //    array('>' => ''), 10, 0,
-//    array('filter' => array('>'))); //less than the argument filter
+//    array('filter' => array('>'))); //フィルタ引数未満
 //$ret = $index->find(
 //    array('>' => ''), 10, 0,
-//    array('filter' => array('>', 'f1'))); //less than the argument filter
+//    array('filter' => array('>', 'f1'))); //フィルタ引数未満
 //$ret = $index->find(
 //    array('>' => ''), 10, 0,
-//    array('filter' => array('>', 'f3', 'f'))); //filter invalid key
+//    array('filter' => array('>', 'f3', 'f'))); //無効フィルタキー
 
 
-//Add the data
-//Success:
+//データを追加する
+//成功:
 status_ok('HandlerSocketIndex:insert', $index->insert('K40', 'V40'));
 //status_ok('HandlerSocketIndex:insert', $index->insert(array('K40', 'V40')));
 //status_ok('HandlerSocketIndex:insert', $index->insert(array('K40', 'V40', 'F40')));
 
-//Failure:
-//status_ok('HandlerSocketIndex:insert', $index->insert()); //no arguments
+//失敗:
+//status_ok('HandlerSocketIndex:insert', $index->insert()); //引数なし
 
 
-//Update the data
-//Success:
+//データを更新する
+//成功:
 //$ret = $index->update('K40', array('K40', '^^40'));
 //$ret = $index->update('K40', array('U' => array('K40', '^^40')));
 $ret = $index->update('K40', array('U?' => array('K40', '^^40')));
 //$ret = $index->update('K40', 'K40');
 
-//Failure:
-//$ret = $index->update(); //no arguments
-//$ret = $index->update('K40'); //no arguments update
-//$ret = $index->update('K40', array('u' => array('K40', 'V40'))); //operator Invalid
+//失敗:
+//$ret = $index->update(); //引数なし
+//$ret = $index->update('K40'); //更新引数なし
+//$ret = $index->update('K40', array('u' => array('K40', 'V40'))); //無効演算子
 
 status_ok('HandlerSocketIndex:update', $ret);
 
 
-//Delete data
-//Success:
+//データを削除する
+//成功:
 status_ok('HandlerSocketIndex:remove', $index->remove('K40'));
 //status_ok('HandlerSocketIndex:remove', $index->remove(array('=' => 'K40')));
 //status_ok('HandlerSocketIndex:remove', $index->remove(array('K40')));
 
-//Failure:
-//$ret = $index->remove(); //no arguments
+//失敗:
+//$ret = $index->remove(); //引数なし
 
 
-//Perform multiple operations
-// Success:
+//複数の処理を実行する
+//成功:
 $ret = $index->multi(
     array(
         array('find', 'k0'),
@@ -476,14 +476,14 @@ $ret = $index->multi(
 status_ok('HandlerSocketIndex:multi', $ret);
 unset($ret);
 
-//Failure:
-//$ret = $index->multi(); //no arguments
-//$ret = $index->multi(''); //argument empty
-//$ret = $index->multi(null); //argument NULL
-//$ret = $index->multi(array()); //an empty array
-//$ret = $index->multi(array('insert', 'ke', 've')); //array Invalid
-//$ret = $index->multi(array(array())); //empty array * 2
-//$ret = $index->multi(array(array('insert'))); //array Invalid
+//失敗:
+//$ret = $index->multi(); //引数なし
+//$ret = $index->multi(''); //空引数
+//$ret = $index->multi(null); //NULL 引数
+//$ret = $index->multi(array()); //空配列
+//$ret = $index->multi(array('insert', 'ke', 've')); //無効配列
+//$ret = $index->multi(array(array())); //空配列 * 2
+//$ret = $index->multi(array(array('insert'))); //無効配列
 
 
 
