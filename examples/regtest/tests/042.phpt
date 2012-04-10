@@ -33,6 +33,11 @@ catch (HandlerSocketException $exception)
 }
 
 echo 'open_index 1st r=', var_export($retval, true), PHP_EOL;
+
+if (version_compare(PHP_VERSION, '5.3.0') < 0)
+{
+    $hs->close();
+}
 unset($index);
 unset($hs);
 
