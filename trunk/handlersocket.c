@@ -83,14 +83,26 @@ typedef struct
     zval *error;
 } php_hs_index_t;
 
-#define PUSH_PARAM(arg) zend_vm_stack_push(arg TSRMLS_CC)
-#define POP_PARAM() (void)zend_vm_stack_pop(TSRMLS_C)
+#if ZEND_MODULE_API_NO >= 20090115
+#   define PUSH_PARAM(arg) zend_vm_stack_push(arg TSRMLS_CC)
+#   define POP_PARAM() (void)zend_vm_stack_pop(TSRMLS_C)
+#   define PUSH_EO_PARAM()
+#   define POP_EO_PARAM()
+#else
+#   define PUSH_PARAM(arg) zend_ptr_stack_push(&EG(argument_stack), arg)
+#   define POP_PARAM() (void)zend_ptr_stack_pop(&EG(argument_stack))
+#   define PUSH_EO_PARAM() zend_ptr_stack_push(&EG(argument_stack), NULL)
+#   define POP_EO_PARAM() (void)zend_ptr_stack_pop(&EG(argument_stack))
+#   define array_init_size(arg, size) _array_init((arg))
+#endif
 
 #define HS_METHOD_BASE(classname, name) zim_##classname##_##name
 
 #define HS_METHOD_HELPER(classname, name, retval, thisptr, num, param) \
   PUSH_PARAM(param); PUSH_PARAM((void*)num); \
+  PUSH_EO_PARAM(); \
   HS_METHOD_BASE(classname, name)(num, retval, NULL, thisptr, 0 TSRMLS_CC); \
+  POP_EO_PARAM(); \
   POP_PARAM(); POP_PARAM();
 
 #define HS_METHOD(classname, name, retval, thisptr) \
@@ -135,6 +147,9 @@ static ZEND_METHOD(HandlerSocket, executeDelete);
 static ZEND_METHOD(HandlerSocket, executeInsert);
 static ZEND_METHOD(HandlerSocket, getError);
 static ZEND_METHOD(HandlerSocket, createIndex);
+#if PHP_VERSION_ID < 50300
+static ZEND_METHOD(HandlerSocket, close);
+#endif
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_hs___construct, 0, 0, 2)
     ZEND_ARG_INFO(0, host)
@@ -213,6 +228,11 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_hs_createIndex, 0, 0, 5)
     ZEND_ARG_INFO(0, options)
 ZEND_END_ARG_INFO()
 
+#if PHP_VERSION_ID < 50300
+ZEND_BEGIN_ARG_INFO_EX(arginfo_hs_close, 0, 0, 0)
+ZEND_END_ARG_INFO()
+#endif
+
 static const zend_function_entry hs_methods[] = {
     ZEND_ME(HandlerSocket, __construct,
             arginfo_hs___construct, ZEND_ACC_PUBLIC)
@@ -234,6 +254,10 @@ static const zend_function_entry hs_methods[] = {
             arginfo_hs_getError, ZEND_ACC_PUBLIC)
     ZEND_ME(HandlerSocket, createIndex,
             arginfo_hs_createIndex, ZEND_ACC_PUBLIC)
+#if PHP_VERSION_ID < 50300
+    ZEND_ME(HandlerSocket, close,
+            arginfo_hs_close, ZEND_ACC_PUBLIC)
+#endif
     ZEND_MALIAS(HandlerSocket, executeFind, executeSingle,
                 arginfo_hs_executeSingle, ZEND_ACC_PUBLIC)
     {NULL, NULL, NULL}
@@ -1972,9 +1996,13 @@ static zend_object_value hs_new(zend_class_entry *ce TSRMLS_DC)
     hs = (php_hs_t *)emalloc(sizeof(php_hs_t));
 
     zend_object_std_init(&hs->object, ce TSRMLS_CC);
+#if PHP_VERSION_ID < 50399
     zend_hash_copy(
         hs->object.properties, &ce->default_properties,
         (copy_ctor_func_t)zval_add_ref, (void *)&tmp, sizeof(zval *));
+#else
+    object_properties_init(&hs->object, ce);
+#endif
 
     retval.handle = zend_objects_store_put(
         hs, (zend_objects_store_dtor_t)zend_objects_destroy_object,
@@ -2886,6 +2914,37 @@ static ZEND_METHOD(HandlerSocket, createIndex)
     zval_ptr_dtor(&index_z);
 }
 
+#if PHP_VERSION_ID < 50300
+static ZEND_METHOD(HandlerSocket, close)
+{
+    php_hs_t *hs;
+
+    hs = (php_hs_t *)zend_object_store_get_object(getThis() TSRMLS_CC);
+    HS_CHECK_OBJECT(hs, HandlerSocket);
+
+    if (hs)
+    {
+        if (hs->stream)
+        {
+            php_stream_close(hs->stream);
+        }
+        hs->stream = NULL;
+
+        if (hs->server)
+        {
+            zval_ptr_dtor(&hs->server);
+        }
+        hs->server = NULL;
+
+        if (hs->auth)
+        {
+            zval_ptr_dtor(&hs->auth);
+        }
+        hs->auth = NULL;
+    }
+}
+#endif
+
 /* HandlerSocket Index Class */
 static void hs_index_free(php_hs_index_t *hsi TSRMLS_DC)
 {
@@ -2921,9 +2980,13 @@ static zend_object_value hs_index_new(zend_class_entry *ce TSRMLS_DC)
     hsi = (php_hs_index_t *)emalloc(sizeof(php_hs_index_t));
 
     zend_object_std_init(&hsi->object, ce TSRMLS_CC);
+#if PHP_VERSION_ID < 50399
     zend_hash_copy(
         hsi->object.properties, &ce->default_properties,
         (copy_ctor_func_t)zval_add_ref, (void *)&tmp, sizeof(zval *));
+#else
+    object_properties_init(&hsi->object, ce);
+#endif
 
     retval.handle = zend_objects_store_put(
         hsi, (zend_objects_store_dtor_t)zend_objects_destroy_object,
